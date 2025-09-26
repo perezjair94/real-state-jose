@@ -2,22 +2,22 @@
 
 ## Purpose
 
-Create a minimalist Real Estate Management System using basic HTML, CSS, and JavaScript for students learning web development. The system will provide clean, educational interfaces for managing properties, clients, agents, sales, contracts, rentals, and visits - focusing on frontend prototypes without database integration to help students understand fundamental web development concepts and present their projects effectively.
+Create a minimalist Real Estate Management System using basic HTML, CSS, JavaScript, PHP, and MySQL for students learning full-stack web development. The system will provide clean, educational interfaces for managing properties, clients, agents, sales, contracts, rentals, and visits - with simple backend integration to help students understand fundamental full-stack web development concepts and present their projects effectively.
 
 ## Core Principles
 
-1. **Educational Simplicity**: Use only basic HTML, CSS, and JavaScript - no frameworks or complex tools
+1. **Educational Simplicity**: Use only basic HTML, CSS, JavaScript, PHP, and MySQL - no frameworks or complex tools
 2. **Minimalist Design**: Clean, professional interfaces that focus on functionality over decoration
 3. **Student-Friendly Code**: Clear, readable code structure that students can easily understand and modify
-4. **No Database Complexity**: Frontend-only prototypes with simulated data for easier learning
+4. **Basic Backend Integration**: Simple PHP scripts and MySQL database for fundamental server-side learning
 5. **Responsive Foundation**: Mobile-first design using basic CSS Grid and Flexbox
-6. **Real-World Structure**: Professional interface patterns that mirror actual business applications
+6. **Real-World Structure**: Professional full-stack patterns that mirror actual business applications
 
 ---
 
 ## Goal
 
-Build a complete Real Estate Management System interface that demonstrates professional web development skills using fundamental HTML, CSS, and JavaScript technologies, providing students with a portfolio-ready project that showcases CRUD operations, responsive design, and business application structure.
+Build a complete Real Estate Management System that demonstrates professional full-stack web development skills using fundamental HTML, CSS, JavaScript, PHP, and MySQL technologies, providing students with a portfolio-ready project that showcases CRUD operations, database integration, responsive design, and complete business application structure.
 
 ## Why
 
@@ -100,97 +100,222 @@ project_requirements:
 ### Technical Stack & Constraints
 
 ```yaml
-# Educational Web Application - Simplified Approach
-application_type: "Demonstration web application (functional prototype)"
-access: "Accessible from browsers and compatible with mobile devices"
+# Educational Full-Stack Web Application - Basic Approach
+application_type: "Full-stack web application with basic PHP backend and MySQL database"
+access: "Local development server (XAMPP/WAMP) for educational purposes"
 
 # Main Technologies
 educational_frontend: "HTML5, CSS3 and vanilla JavaScript (no external libraries)"
-backend_simulation: "JavaScript to simulate database operations using arrays and objects"
+educational_backend: "Basic PHP scripts for server-side processing and database interaction"
+educational_database: "MySQL database with simple table structure matching schema"
 data_structure: "Based on database schema (clients, properties, agents, sales, contracts, rentals, visits)"
 
 # Main Features
 features:
-  - "Interactive forms with validation"
+  - "Interactive forms with client-side and server-side validation"
   - "Tab-based navigation between modules"
-  - "Simulated CRUD operations"
-  - "Management of relationships between entities"
-  - "Automatic ID generation (CLI001, INM001, etc.)"
+  - "Real CRUD operations with MySQL database"
+  - "Management of relationships between entities using foreign keys"
+  - "Automatic ID generation (CLI001, INM001, etc.) via database auto-increment"
+  - "Basic session management for user authentication"
 
 # Technical Approach
-styling: "CSS Grid and Flexbox for professional layouts"
-data_storage: "JavaScript arrays and objects - no external database"
-validation: "Real-time data validation"
+frontend_styling: "CSS Grid and Flexbox for professional layouts"
+backend_processing: "Simple PHP scripts for each CRUD operation"
+data_storage: "MySQL database with normalized table structure"
+validation: "Client-side validation with JavaScript + server-side validation with PHP"
 responsive: "Mobile-first design with media queries"
-file_structure: "Single HTML file with embedded CSS and JavaScript"
+file_structure: "Separate HTML, CSS, JavaScript, and PHP files for educational clarity"
+server_requirements: "Local XAMPP/WAMP stack for easy student setup"
 ```
 
 ## Implementation Blueprint
 
-### HTML Foundation
+### Project Structure
+
+```
+real-estate-system/
+├── index.php (main interface)
+├── config/
+│   └── database.php (MySQL connection)
+├── includes/
+│   ├── header.php
+│   └── footer.php
+├── modules/
+│   ├── properties/ (inmuebles)
+│   ├── clients/ (clientes)
+│   ├── agents/ (agentes)
+│   ├── sales/ (ventas)
+│   ├── contracts/ (contratos)
+│   ├── rentals/ (arriendos)
+│   └── visits/ (visitas)
+├── assets/
+│   ├── css/
+│   ├── js/
+│   └── images/
+└── database/
+    └── schema.sql (database structure)
+```
+
+### Database Configuration
+
+```php
+<?php
+// config/database.php - Basic MySQL connection for students
+$host = 'localhost';
+$username = 'root';
+$password = '';
+$database = 'real_estate_db';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+?>
+```
+
+### HTML Foundation with PHP
 
 ```html
-<!-- Basic structure for real estate management system -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestión Inmobiliaria</title>
-  <style>
-    /* Embedded CSS for single-file approach */
-  </style>
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <header>
-    <h1>Sistema de Gestión Inmobiliaria</h1>
-    <nav>
-      <!-- Tab navigation for modules -->
-    </nav>
-  </header>
+  <?php include 'includes/header.php'; ?>
 
   <main>
-    <!-- Dynamic content sections -->
+    <!-- Module content loaded dynamically based on $_GET parameter -->
+    <?php
+    $module = $_GET['module'] ?? 'properties';
+    $allowed_modules = ['properties', 'clients', 'agents', 'sales', 'contracts', 'rentals', 'visits'];
+
+    if (in_array($module, $allowed_modules)) {
+        include "modules/{$module}/index.php";
+    } else {
+        include 'modules/properties/index.php';
+    }
+    ?>
   </main>
 
-  <script>
-    /* Embedded JavaScript for single-file approach */
-  </script>
+  <?php include 'includes/footer.php'; ?>
+  <script src="assets/js/main.js"></script>
 </body>
 </html>
 ```
 
-### Data Structure Schema
+### MySQL Database Schema
 
-```javascript
-// Sample data structures matching database schema
-const sampleData = {
-  clientes: [
-    {
-      id_cliente: 'CLI001',
-      nombre: 'Juan',
-      apellido: 'Pérez',
-      tipo_documento: 'CC',
-      nro_documento: '12345678',
-      correo: 'juan.perez@email.com',
-      direccion: 'Calle 123 #45-67',
-      tipo_cliente: 'Comprador'
-    }
-  ],
-  inmuebles: [
-    {
-      id_inmueble: 'INM001',
-      tipo_inmueble: 'Apartamento',
-      direccion: 'Carrera 45 #23-12',
-      ciudad: 'Bogotá',
-      precio: 350000000,
-      estado: 'Disponible',
-      descripcion: 'Apartamento de 3 habitaciones...',
-      fotos: ['foto1.jpg', 'foto2.jpg']
-    }
-  ]
-  // ... other entities
-};
+```sql
+-- database/schema.sql - Basic database structure for students
+CREATE DATABASE IF NOT EXISTS real_estate_db CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE real_estate_db;
+
+-- Table: clientes
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_cliente VARCHAR(10) UNIQUE NOT NULL, -- CLI001, CLI002, etc.
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    tipo_documento ENUM('CC', 'CE', 'TI', 'PP') NOT NULL,
+    nro_documento VARCHAR(20) UNIQUE NOT NULL,
+    correo VARCHAR(150) UNIQUE NOT NULL,
+    direccion TEXT NOT NULL,
+    tipo_cliente ENUM('Comprador', 'Arrendatario', 'Vendedor') NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table: agentes
+CREATE TABLE agentes (
+    id_agente INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_agente VARCHAR(10) UNIQUE NOT NULL, -- AGE001, AGE002, etc.
+    nombre VARCHAR(150) NOT NULL,
+    correo VARCHAR(150) UNIQUE NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    asesor BOOLEAN DEFAULT TRUE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table: inmuebles
+CREATE TABLE inmuebles (
+    id_inmueble INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_inmueble VARCHAR(10) UNIQUE NOT NULL, -- INM001, INM002, etc.
+    tipo_inmueble ENUM('Casa', 'Apartamento', 'Local', 'Oficina', 'Terreno') NOT NULL,
+    direccion TEXT NOT NULL,
+    ciudad VARCHAR(100) NOT NULL,
+    precio DECIMAL(15,2) NOT NULL,
+    estado ENUM('Disponible', 'Vendido', 'Arrendado', 'Reservado') DEFAULT 'Disponible',
+    descripcion TEXT,
+    fotos TEXT, -- JSON array of photo URLs
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table: ventas
+CREATE TABLE ventas (
+    id_venta INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_venta VARCHAR(10) UNIQUE NOT NULL, -- VEN001, VEN002, etc.
+    fecha_venta DATE NOT NULL,
+    valor DECIMAL(15,2) NOT NULL,
+    id_inmueble INT NOT NULL,
+    id_cliente INT NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_inmueble) REFERENCES inmuebles(id_inmueble),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- Table: contratos
+CREATE TABLE contratos (
+    id_contrato INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_contrato VARCHAR(10) UNIQUE NOT NULL, -- CON001, CON002, etc.
+    tipo_contrato ENUM('Venta', 'Arriendo') NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    archivo_contrato VARCHAR(255),
+    id_inmueble INT NOT NULL,
+    id_cliente INT NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_inmueble) REFERENCES inmuebles(id_inmueble),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- Table: arriendos
+CREATE TABLE arriendos (
+    id_arriendo INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_arriendo VARCHAR(10) UNIQUE NOT NULL, -- ARR001, ARR002, etc.
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    canon_mensual DECIMAL(10,2) NOT NULL,
+    estado ENUM('Activo', 'Finalizado', 'Suspendido') DEFAULT 'Activo',
+    id_inmueble INT NOT NULL,
+    id_cliente INT NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_inmueble) REFERENCES inmuebles(id_inmueble),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- Table: visitas
+CREATE TABLE visitas (
+    id_visita INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_visita VARCHAR(10) UNIQUE NOT NULL, -- VIS001, VIS002, etc.
+    fecha_visita DATE NOT NULL,
+    hora_visita TIME NOT NULL,
+    id_inmueble INT NOT NULL,
+    id_cliente INT NOT NULL,
+    id_agente INT NOT NULL,
+    estado ENUM('Programada', 'Realizada', 'Cancelada') DEFAULT 'Programada',
+    observaciones TEXT,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_inmueble) REFERENCES inmuebles(id_inmueble),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_agente) REFERENCES agentes(id_agente)
+);
 ```
 
 ### Application Architecture & Modules
@@ -406,16 +531,26 @@ class RealEstateManager {
 ## Task Implementation Order
 
 ```yaml
-Task 1 - HTML Foundation & Navigation:
-  CREATE index.html:
-    - IMPLEMENT semantic HTML5 structure with header, nav, main, footer
-    - CREATE tab-based navigation for 7 modules
-    - ADD form structures for each entity type
-    - ENSURE accessibility with proper labels and ARIA attributes
-    - VALIDATE markup with W3C validator
+Task 1 - Environment Setup & Database:
+  SETUP development environment:
+    - INSTALL XAMPP/WAMP for local PHP/MySQL development
+    - CREATE project folder structure with proper organization
+    - SETUP database connection and test connectivity
+    - IMPORT database schema from schema.sql file
+    - CREATE basic configuration files (database.php)
+    - TEST database connection and basic queries
 
-Task 2 - CSS Styling & Responsive Design:
-  EMBED styles in <style> tag:
+Task 2 - HTML Foundation & Navigation:
+  CREATE index.php and basic structure:
+    - IMPLEMENT semantic HTML5 structure with PHP includes
+    - CREATE modular navigation system using $_GET parameters
+    - ADD form structures for each entity type with PHP processing
+    - ENSURE accessibility with proper labels and ARIA attributes
+    - IMPLEMENT basic session management for user feedback
+    - VALIDATE markup and PHP syntax
+
+Task 3 - CSS Styling & Responsive Design:
+  CREATE assets/css/style.css:
     - IMPLEMENT professional color scheme and typography
     - CREATE responsive grid layouts for forms and tables
     - ADD card designs for property listings
@@ -423,78 +558,87 @@ Task 2 - CSS Styling & Responsive Design:
     - CREATE consistent button and form styling
     - TEST across different screen sizes
 
-Task 3 - Core JavaScript Functionality:
-  EMBED scripts in <script> tag:
-    - IMPLEMENT navigation between modules
-    - CREATE form handling and validation functions
-    - ADD data storage simulation with JavaScript arrays
-    - IMPLEMENT ID generation for each entity type
-    - CREATE CRUD operations for all modules
-    - ADD success/error messaging system
+Task 4 - Core PHP CRUD Functions:
+  CREATE basic PHP functions:
+    - IMPLEMENT database connection patterns
+    - CREATE basic CRUD functions for each entity
+    - ADD automatic ID generation with database sequences
+    - IMPLEMENT form processing and validation
+    - CREATE success/error messaging system with sessions
+    - ADD basic security measures (SQL injection prevention)
 
-Task 4 - Properties Module Implementation:
-  COMPLETE property management:
-    - IMPLEMENT property form with all fields from schema
-    - CREATE property listing grid with photos
-    - ADD filtering by type, price, location, status
-    - IMPLEMENT property detail view
-    - CREATE photo upload simulation
-    - TEST all property operations
+Task 5 - Properties Module Implementation:
+  COMPLETE property management with PHP/MySQL:
+    - IMPLEMENT property forms with server-side processing
+    - CREATE property listing with database queries
+    - ADD filtering and search functionality
+    - IMPLEMENT photo upload handling
+    - CREATE property detail views with database data
+    - TEST all CRUD operations for properties
 
-Task 5 - Client & Agent Modules:
-  COMPLETE people management:
-    - IMPLEMENT client form with document types
-    - CREATE agent management interface
-    - ADD search and filter functionality
-    - IMPLEMENT contact information display
-    - CREATE relationship tracking
-    - TEST user interactions
+Task 6 - Client & Agent Modules:
+  COMPLETE people management with database:
+    - IMPLEMENT client registration with database storage
+    - CREATE agent management interface with MySQL
+    - ADD search and filter functionality using SQL queries
+    - IMPLEMENT contact information management
+    - CREATE relationship tracking with foreign keys
+    - TEST database relationships and constraints
 
-Task 6 - Transaction Modules (Sales, Contracts, Rentals):
-  COMPLETE business operations:
-    - IMPLEMENT sales tracking with property/client linking
-    - CREATE contract management with file uploads
+Task 7 - Transaction Modules (Sales, Contracts, Rentals):
+  COMPLETE business operations with database:
+    - IMPLEMENT sales tracking with proper foreign key relationships
+    - CREATE contract management with file upload handling
     - ADD rental management with payment tracking
-    - IMPLEMENT date handling and validations
-    - CREATE transaction history views
-    - TEST all transaction workflows
+    - IMPLEMENT date handling and MySQL date functions
+    - CREATE transaction history views with JOIN queries
+    - TEST all business logic and database integrity
 
-Task 7 - Visits Module & Final Polish:
-  COMPLETE scheduling and final touches:
-    - IMPLEMENT visit scheduling with calendar view
+Task 8 - Visits Module & System Integration:
+  COMPLETE scheduling and final integration:
+    - IMPLEMENT visit scheduling with database storage
     - CREATE agent assignment functionality
-    - ADD data export simulation
-    - IMPLEMENT final responsive testing
-    - CREATE demo data for presentation
-    - TEST complete user workflows
+    - ADD data export features using PHP
+    - IMPLEMENT complete user workflows testing
+    - CREATE sample data insertion scripts
+    - TEST entire system integration and performance
 ```
 
 ## Validation & Testing
 
-### Level 1: Functionality Testing
+### Level 1: Environment & Database Testing
 
 ```bash
-# Local Development Server
-python -m http.server 8000
-# Or use Live Server extension in VS Code
-# Or simply open index.html in browser
+# XAMPP/WAMP Server Setup Validation
+# 1. Start Apache and MySQL services
+# 2. Access http://localhost/phpmyadmin
+# 3. Test database connection
+# 4. Import schema.sql successfully
+
+# Database Connectivity Test
+php -r "
+try {
+    \$pdo = new PDO('mysql:host=localhost;dbname=real_estate_db', 'root', '');
+    echo 'Database connection successful!' . PHP_EOL;
+    \$stmt = \$pdo->query('SHOW TABLES');
+    echo 'Tables found: ' . \$stmt->rowCount() . PHP_EOL;
+} catch(PDOException \$e) {
+    echo 'Connection failed: ' . \$e->getMessage() . PHP_EOL;
+}
+"
+
+# PHP Syntax Validation
+find . -name "*.php" -exec php -l {} \;
 
 # Manual Testing Checklist:
-# 1. Navigation between all 7 modules works
-# 2. All forms accept and validate input
-# 3. Data persists within browser session
-# 4. ID generation works for all entity types
-# 5. Responsive design works on mobile/desktop
-# 6. All CRUD operations function properly
-
-# HTML Validation
-# Visit: https://validator.w3.org/
-# Upload index.html file for validation
-
-# Accessibility Testing
-# Use browser dev tools accessibility tab
-# Test keyboard navigation
-# Verify proper form labels and ARIA attributes
+# 1. All 7 modules load without PHP errors
+# 2. Forms submit and store data in MySQL
+# 3. Data persists between browser sessions
+# 4. Automatic ID generation works (CLI001, INM001, etc.)
+# 5. Foreign key relationships maintain data integrity
+# 6. Search and filter functionality works with database
+# 7. File uploads handle properly (if implemented)
+# 8. Session management works for user feedback
 ```
 
 ### Level 2: User Experience Validation
@@ -715,37 +859,43 @@ class RealEstateSystem {
 
 ## Final Validation Checklist
 
-### Core Functionality
-- [ ] All 7 modules (Properties, Clients, Agents, Sales, Contracts, Rentals, Visits) fully functional
-- [ ] Navigation between modules works smoothly
-- [ ] Form validation prevents invalid data entry
-- [ ] ID generation follows business patterns (CLI001, INM001, etc.)
-- [ ] Data relationships maintained between entities
-- [ ] CRUD operations work for all entity types
+### Core Functionality & Database
+- [ ] All 7 modules (Properties, Clients, Agents, Sales, Contracts, Rentals, Visits) fully functional with MySQL
+- [ ] XAMPP/WAMP environment setup correctly with Apache and MySQL running
+- [ ] Database schema imported successfully with all tables and relationships
+- [ ] Navigation between modules works smoothly with PHP includes
+- [ ] Form validation works on both client-side (JavaScript) and server-side (PHP)
+- [ ] ID generation follows business patterns (CLI001, INM001, etc.) using database auto-increment
+- [ ] Foreign key relationships maintained and enforced in MySQL
+- [ ] CRUD operations work for all entity types with proper SQL queries
+- [ ] Session management works for user feedback and basic security
 
 ### User Interface & Experience
 - [ ] Professional, clean design appropriate for business application
 - [ ] Responsive design works on mobile and desktop (320px to 1200px+)
 - [ ] Forms are user-friendly with clear labels and validation
-- [ ] Tables display data clearly with proper formatting
-- [ ] Success and error messages provide clear feedback
-- [ ] Loading states and transitions are smooth
+- [ ] Tables display data clearly from MySQL database
+- [ ] Success and error messages provide clear feedback using PHP sessions
+- [ ] Data persists between browser sessions (stored in database)
 
-### Technical Implementation
+### Technical Implementation & Security
 - [ ] HTML is semantic and validates without errors
 - [ ] CSS follows professional styling patterns
-- [ ] JavaScript code is clean, readable, and well-commented
-- [ ] No console errors or broken functionality
+- [ ] PHP code is clean, readable, and well-commented for students
+- [ ] No PHP errors or SQL syntax issues
+- [ ] Basic security measures implemented (prepared statements, input sanitization)
 - [ ] Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
 - [ ] Accessibility features implemented (labels, ARIA, keyboard navigation)
 
-### Educational Value
-- [ ] Code demonstrates fundamental web development concepts
-- [ ] Structure is clear and easy for students to understand
-- [ ] Comments explain key functionality and patterns
-- [ ] Project is suitable for academic presentation
-- [ ] Portfolio-ready professional appearance
-- [ ] Scalable structure allows for future enhancements
+### Educational Value & Full-Stack Learning
+- [ ] Code demonstrates fundamental full-stack web development concepts
+- [ ] Structure is clear and easy for students to understand (HTML, CSS, JavaScript, PHP, MySQL)
+- [ ] Comments explain key functionality and database patterns
+- [ ] Project demonstrates real database relationships and constraints
+- [ ] Students can learn basic SQL through the implementation
+- [ ] Project is suitable for academic presentation as a complete system
+- [ ] Portfolio-ready professional appearance with full backend functionality
+- [ ] Scalable structure allows for future enhancements and learning
 
 ---
 
