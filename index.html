@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Inmobiliario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: #ecf0f1;
+            flex-wrap: wrap;
+        }
+
+        .nav button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav button:hover {
+            background: #2980b9;
+        }
+
+        .nav button.active {
+            background: #2c3e50;
+        }
+
+        .content {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .form-section {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background: #229954;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.inactivo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.vendido {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Gestión Inmobiliaria</h1>
+            <p>Gestión de propiedades, clientes y ventas</p>
+        </div>
+
+        <div class="nav">
+            <button onclick="showSection('inmuebles')" id="btn-inmuebles">Inmuebles</button>
+            <button onclick="showSection('clientes')" id="btn-clientes">Clientes</button>
+            <button onclick="showSection('agentes')" id="btn-agentes">Agentes</button>
+            <button onclick="showSection('ventas')" id="btn-ventas">Ventas</button>
+            <button onclick="showSection('contratos')" id="btn-contratos">Contratos</button>
+            <button onclick="showSection('arriendos')" id="btn-arriendos">Arriendos</button>
+            <button onclick="showSection('visitas')" id="btn-visitas">Visitas</button>
+        </div>
+
+        <div class="content">
+            <!-- SECCIÓN INMUEBLES -->
+            <div id="inmuebles" class="form-section active">
+                <h2>Gestión de Inmuebles</h2>
+                
+                <div class="card">
+                    <h3>Registrar Nuevo Inmueble</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Inmueble:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Inmueble:</label>
+                                <select>
+                                    <option>Casa</option>
+                                    <option>Apartamento</option>
+                                    <option>Local Comercial</option>
+                                    <option>Oficina</option>
+                                    <option>Lote</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dirección:</label>
+                                <input type="text" placeholder="Dirección completa">
+                            </div>
+                            <div class="form-group">
+                                <label>Ciudad:</label>
+                                <input type="text" placeholder="Ciudad">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Precio:</label>
+                                <input type="number" placeholder="Precio en pesos">
+                            </div>
+                            <div class="form-group">
+                                <label>Estado:</label>
+                                <select>
+                                    <option>Disponible</option>
+                                    <option>Vendido</option>
+                                    <option>En Proceso</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Descripción:</label>
+                            <textarea placeholder="Descripción detallada del inmueble"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fotos:</label>
+                            <input type="file" multiple accept="image/*">
+                        </div>
+                        
+                        <button type="submit" class="btn">Guardar Inmueble</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Inmuebles</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Dirección</th>
+                                <th>Ciudad</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INM001</td>
+                                <td>Casa</td>
+                                <td>Calle 123 #45-67</td>
+                                <td>Medellín</td>
+                                <td>$350,000,000</td>
+                                <td><span class="status activo">Disponible</span></td>
+                                <td>
+                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary">Ver</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>INM002</td>
+                                <td>Apartamento</td>
+                                <td>Carrera 70 #25-30</td>
+                                <td>Medellín</td>
+                                <td>$280,000,000</td>
+                                <td><span class="status vendido">Vendido</span></td>
+                                <td>
+                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN CLIENTES -->
+            <div id="clientes" class="form-section">
+                <h2>Gestión de Clientes</h2>
+                
+                <div class="card">
+                    <h3>Registrar Nuevo Cliente</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Cliente:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Documento:</label>
+                                <select>
+                                    <option>Cédula de Ciudadanía</option>
+                                    <option>Cédula de Extranjería</option>
+                                    <option>Pasaporte</option>
+                                    <option>NIT</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Número de Documento:</label>
+                                <input type="text" placeholder="Número de documento">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Cliente:</label>
+                                <select>
+                                    <option>Comprador</option>
+                                    <option>Vendedor</option>
+                                    <option>Arrendatario</option>
+                                    <option>Arrendador</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre:</label>
+                                <input type="text" placeholder="Nombre completo">
+                            </div>
+                            <div class="form-group">
+                                <label>Apellido:</label>
+                                <input type="text" placeholder="Apellidos">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Correo:</label>
+                                <input type="email" placeholder="correo@ejemplo.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Dirección:</label>
+                                <input type="text" placeholder="Dirección de residencia">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">Guardar Cliente</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Clientes</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Documento</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Correo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CLI001</td>
+                                <td>12345678</td>
+                                <td>Juan Pérez</td>
+                                <td>Comprador</td>
+                                <td>juan@email.com</td>
+                                <td>
+                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN AGENTES -->
+            <div id="agentes" class="form-section">
+                <h2>Gestión de Agentes</h2>
+                
+                <div class="card">
+                    <h3>Registrar Nuevo Agente</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Agente:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre:</label>
+                                <input type="text" placeholder="Nombre completo">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Correo:</label>
+                                <input type="email" placeholder="agente@empresa.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono:</label>
+                                <input type="tel" placeholder="300-123-4567">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Asesor:</label>
+                            <input type="text" placeholder="Nombre del supervisor o asesor">
+                        </div>
+                        
+                        <button type="submit" class="btn">Guardar Agente</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Agentes</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Teléfono</th>
+                                <th>Asesor</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AGE001</td>
+                                <td>María García</td>
+                                <td>maria@inmobiliaria.com</td>
+                                <td>300-555-0123</td>
+                                <td>Carlos Rodríguez</td>
+                                <td>
+                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN VENTAS -->
+            <div id="ventas" class="form-section">
+                <h2>Gestión de Ventas</h2>
+                
+                <div class="card">
+                    <h3>Registrar Nueva Venta</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Venta:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Venta:</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Inmueble:</label>
+                                <select>
+                                    <option>INM001 - Casa Calle 123</option>
+                                    <option>INM003 - Apartamento Carrera 70</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cliente:</label>
+                                <select>
+                                    <option>CLI001 - Juan Pérez</option>
+                                    <option>CLI002 - Ana López</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Valor de Venta:</label>
+                            <input type="number" placeholder="Valor final de la venta">
+                        </div>
+                        
+                        <button type="submit" class="btn">Registrar Venta</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Ventas</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Inmueble</th>
+                                <th>Cliente</th>
+                                <th>Valor</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>VEN001</td>
+                                <td>2024-09-15</td>
+                                <td>INM002</td>
+                                <td>Juan Pérez</td>
+                                <td>$280,000,000</td>
+                                <td>
+                                    <button class="btn btn-secondary">Ver Detalles</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN CONTRATOS -->
+            <div id="contratos" class="form-section">
+                <h2>Gestión de Contratos</h2>
+                
+                <div class="card">
+                    <h3>Crear Nuevo Contrato</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Contrato:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Contrato:</label>
+                                <select>
+                                    <option>Compraventa</option>
+                                    <option>Arrendamiento</option>
+                                    <option>Promesa de Compraventa</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Inicio:</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Fin:</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Inmueble:</label>
+                                <select>
+                                    <option>INM001 - Casa Calle 123</option>
+                                    <option>INM003 - Apartamento Carrera 70</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cliente:</label>
+                                <select>
+                                    <option>CLI001 - Juan Pérez</option>
+                                    <option>CLI002 - Ana López</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Archivo del Contrato:</label>
+                            <input type="file" accept=".pdf,.doc,.docx">
+                        </div>
+                        
+                        <button type="submit" class="btn">Crear Contrato</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Contratos</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Inmueble</th>
+                                <th>Cliente</th>
+                                <th>Fecha Inicio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CON001</td>
+                                <td>Compraventa</td>
+                                <td>INM002</td>
+                                <td>Juan Pérez</td>
+                                <td>2024-09-15</td>
+                                <td><span class="status activo">Activo</span></td>
+                                <td>
+                                    <button class="btn btn-secondary">Ver</button>
+                                    <button class="btn btn-secondary">Descargar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN ARRIENDOS -->
+            <div id="arriendos" class="form-section">
+                <h2>Gestión de Arriendos</h2>
+                
+                <div class="card">
+                    <h3>Registrar Nuevo Arriendo</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Arriendo:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Inicio:</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Fin:</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Canon Mensual:</label>
+                                <input type="number" placeholder="Valor del canon mensual">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Inmueble:</label>
+                                <select>
+                                    <option>INM001 - Casa Calle 123</option>
+                                    <option>INM003 - Apartamento Carrera 70</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cliente (Arrendatario):</label>
+                                <select>
+                                    <option>CLI001 - Juan Pérez</option>
+                                    <option>CLI002 - Ana López</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Estado:</label>
+                                <select>
+                                    <option>Activo</option>
+                                    <option>Finalizado</option>
+                                    <option>Suspendido</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">Registrar Arriendo</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Arriendos</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Inmueble</th>
+                                <th>Arrendatario</th>
+                                <th>Canon</th>
+                                <th>Fecha Inicio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ARR001</td>
+                                <td>INM003</td>
+                                <td>Ana López</td>
+                                <td>$1,200,000</td>
+                                <td>2024-08-01</td>
+                                <td><span class="status activo">Activo</span></td>
+                                <td>
+                                    <button class="btn btn-secondary">Ver</button>
+                                    <button class="btn btn-secondary">Editar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN VISITAS -->
+            <div id="visitas" class="form-section">
+                <h2>Gestión de Visitas</h2>
+                
+                <div class="card">
+                    <h3>Programar Nueva Visita</h3>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ID Visita:</label>
+                                <input type="text" placeholder="Generado automáticamente" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Visita:</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Hora de Visita:</label>
+                                <input type="time">
+                            </div>
+                            <div class="form-group">
+                                <label>Inmueble:</label>
+                                <select>
+                                    <option>INM001 - Casa Calle 123</option>
+                                    <option>INM003 - Apartamento Carrera 70</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cliente:</label>
+                                <select>
+                                    <option>CLI001 - Juan Pérez</option>
+                                    <option>CLI002 - Ana López</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Agente:</label>
+                                <select>
+                                    <option>AGE001 - María García</option>
+                                    <option>AGE002 - Carlos López</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">Programar Visita</button>
+                        <button type="reset" class="btn btn-secondary">Limpiar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Lista de Visitas</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Inmueble</th>
+                                <th>Cliente</th>
+                                <th>Agente</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>VIS001</td>
+                                <td>2024-09-20</td>
+                                <td>10:00</td>
+                                <td>INM001</td>
+                                <td>Juan Pérez</td>
+                                <td>María García</td>
+                                <td>
+                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary">Cancelar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar/ocultar secciones
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            const sections = document.querySelectorAll('.form-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los botones
+            const buttons = document.querySelectorAll('.nav button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            document.getElementById(sectionName).classList.add('active');
+            
+            // Activar el botón correspondiente
+            document.getElementById('btn-' + sectionName).classList.add('active');
+        }
+
+        // Función para manejar envío de formularios
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            alert('Datos guardados correctamente (simulación)');
+        }
+
+        // Función para simular búsqueda
+        function searchRecords(searchTerm) {
+            console.log('Buscando: ' + searchTerm);
+            // Aquí iría la lógica de búsqueda real
+        }
+
+        // Función para simular eliminación
+        function deleteRecord(id, type) {
+            if (confirm('¿Está seguro de eliminar este registro?')) {
+                alert('Registro eliminado: ' + type + ' ' + id);
+                // Aquí iría la lógica de eliminación real
+            }
+        }
+
+        // Función para simular edición
+        function editRecord(id, type) {
+            alert('Editando ' + type + ' con ID: ' + id);
+            // Aquí se abriría un modal o se cargarían los datos en el formulario
+        }
+
+        // Función para generar ID automático (simulación)
+        function generateId(prefix) {
+            const timestamp = Date.now().toString().slice(-6);
+            return prefix + timestamp;
+        }
+
+        // Agregar event listeners cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Agregar event listeners a todos los formularios
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', handleFormSubmit);
+            });
+
+            // Generar IDs automáticos para campos readonly
+            const readonlyInputs = document.querySelectorAll('input[readonly]');
+            readonlyInputs.forEach(input => {
+                if (input.placeholder === 'Generado automáticamente') {
+                    const section = input.closest('.form-section').id;
+                    let prefix = '';
+                    switch(section) {
+                        case 'inmuebles': prefix = 'INM'; break;
+                        case 'clientes': prefix = 'CLI'; break;
+                        case 'agentes': prefix = 'AGE'; break;
+                        case 'ventas': prefix = 'VEN'; break;
+                        case 'contratos': prefix = 'CON'; break;
+                        case 'arriendos': prefix = 'ARR'; break;
+                        case 'visitas': prefix = 'VIS'; break;
+                    }
+                    input.value = generateId(prefix);
+                }
+            });
+
+            // Mostrar la primera sección por defecto
+            showSection('inmuebles');
+        });
+
+        // Función para validar formularios
+        function validateForm(formData, requiredFields) {
+            for (let field of requiredFields) {
+                if (!formData[field] || formData[field].trim() === '') {
+                    alert('Por favor complete el campo: ' + field);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Función para formatear números como moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Función para filtrar tablas
+        function filterTable(tableId, searchTerm) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    const cellText = cells[j].textContent.toLowerCase();
+                    if (cellText.includes(searchTerm.toLowerCase())) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                row.style.display = found ? '' : 'none';
+            }
+        }
+
+        // Función para exportar datos (simulación)
+        function exportData(type) {
+            alert('Exportando datos de ' + type + ' a Excel (simulación)');
+            // Aquí iría la lógica real de exportación
+        }
+
+        // Función para imprimir reportes (simulación)
+        function printReport(type) {
+            alert('Generando reporte de ' + type + ' (simulación)');
+            // Aquí iría la lógica real de generación de reportes
+        }
+    </script>
+</body>
+</html>
