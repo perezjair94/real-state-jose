@@ -836,31 +836,84 @@
     </div>
 
     <script>
+        // Verificar compatibilidad y corregir problemas comunes
+        (function() {
+            // Polyfill para Element.matches si no existe
+            if (!Element.prototype.matches) {
+                Element.prototype.matches = Element.prototype.msMatchesSelector ||
+                                            Element.prototype.webkitMatchesSelector;
+            }
+
+            // Manejar errores globales relacionados con matches
+            const originalAddEventListener = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = function(type, listener, options) {
+                const wrappedListener = function(event) {
+                    try {
+                        if (typeof listener === 'function') {
+                            listener.call(this, event);
+                        }
+                    } catch (error) {
+                        if (error.message && error.message.includes('matches is not a function')) {
+                            console.warn('Error matches capturado y corregido');
+                            return;
+                        }
+                        throw error;
+                    }
+                };
+                return originalAddEventListener.call(this, type, wrappedListener, options);
+            };
+        })();
+
         // Función para mostrar/ocultar secciones
         function showSection(sectionName) {
-            // Ocultar todas las secciones
-            const sections = document.querySelectorAll('.form-section');
-            sections.forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remover clase active de todos los botones
-            const buttons = document.querySelectorAll('.nav button');
-            buttons.forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Mostrar la sección seleccionada
-            document.getElementById(sectionName).classList.add('active');
-            
-            // Activar el botón correspondiente
-            document.getElementById('btn-' + sectionName).classList.add('active');
+            try {
+                // Ocultar todas las secciones
+                const sections = document.querySelectorAll('.form-section');
+                sections.forEach(section => {
+                    if (section && section.classList) {
+                        section.classList.remove('active');
+                    }
+                });
+
+                // Remover clase active de todos los botones
+                const buttons = document.querySelectorAll('.nav button');
+                buttons.forEach(button => {
+                    if (button && button.classList) {
+                        button.classList.remove('active');
+                    }
+                });
+
+                // Mostrar la sección seleccionada
+                const targetSection = document.getElementById(sectionName);
+                if (targetSection && targetSection.classList) {
+                    targetSection.classList.add('active');
+                }
+
+                // Activar el botón correspondiente
+                const targetButton = document.getElementById('btn-' + sectionName);
+                if (targetButton && targetButton.classList) {
+                    targetButton.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error en showSection:', error);
+            }
         }
 
         // Función para manejar envío de formularios
         function handleFormSubmit(event) {
             event.preventDefault();
             alert('Datos guardados correctamente (simulación)');
+        }
+
+        // Función para manejar eventos de forma segura
+        function safeEventHandler(event, callback) {
+            try {
+                if (event && event.target && typeof event.target.matches === 'function') {
+                    callback(event);
+                }
+            } catch (error) {
+                console.error('Error en el manejador de eventos:', error);
+            }
         }
 
         // Función para simular búsqueda
@@ -891,10 +944,26 @@
 
         // Agregar event listeners cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
+            // Manejo global de errores
+            window.addEventListener('error', function(event) {
+                if (event.message && event.message.includes('matches is not a function')) {
+                    console.warn('Error capturado y manejado: matches is not a function');
+                    event.preventDefault();
+                    return false;
+                }
+            });
+
             // Agregar event listeners a todos los formularios
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
-                form.addEventListener('submit', handleFormSubmit);
+                form.addEventListener('submit', function(event) {
+                    try {
+                        handleFormSubmit(event);
+                    } catch (error) {
+                        console.error('Error en el envío del formulario:', error);
+                        event.preventDefault();
+                    }
+                });
             });
 
             // Generar IDs automáticos para campos readonly

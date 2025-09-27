@@ -7,7 +7,7 @@
 
 class Database {
     // Database configuration - modify these values for your environment
-    private $host = 'localhost';
+    private $host = '127.0.0.1';
     private $db_name = 'real_estate_db';
     private $username = 'root';
     private $password = '';
@@ -60,7 +60,7 @@ class Database {
             $this->pdo = new PDO($dsn, $this->username, $this->password, $options);
 
             // Additional security settings
-            $this->pdo->exec("SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+            $this->pdo->exec("SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
 
         } catch(PDOException $e) {
             // Log the actual error for developers (never show to users)
