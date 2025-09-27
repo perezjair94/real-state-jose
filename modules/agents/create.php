@@ -13,7 +13,6 @@ if (!defined('APP_ACCESS')) {
 // Initialize variables
 $errors = [];
 $formData = [];
-$success = false;
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,36 +33,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // For now, simulate success since database integration is pending
-        $success = true;
-        $agentId = rand(100, 999); // Simulate generated ID
-
-        // In a real implementation, this would insert into database
-        /*
         try {
             $db = new Database();
             $pdo = $db->getConnection();
 
-            $sql = "INSERT INTO agentes (nombre, correo, telefono, asesor) VALUES (?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
-            $result = $stmt->execute([
-                $formData['nombre'],
-                $formData['correo'],
-                $formData['telefono'],
-                $formData['asesor'] ?: null
-            ]);
+            // Check if email already exists
+            $checkSql = "SELECT id_agente FROM agente WHERE correo = ?";
+            $checkStmt = $pdo->prepare($checkSql);
+            $checkStmt->execute([$formData['correo']]);
 
-            if ($result) {
-                redirectWithMessage(
-                    '?module=agents',
-                    "Agente creado exitosamente",
-                    'success'
-                );
+            if ($checkStmt->fetchColumn()) {
+                $errors['correo'] = 'Ya existe un agente con este correo electrónico';
+            } else {
+                // Insert new agent
+                $sql = "INSERT INTO agente (nombre, correo, telefono, asesor, activo) VALUES (?, ?, ?, ?, 1)";
+                $stmt = $pdo->prepare($sql);
+                $result = $stmt->execute([
+                    $formData['nombre'],
+                    $formData['correo'],
+                    $formData['telefono'],
+                    $formData['asesor'] ?: null
+                ]);
+
+                if ($result) {
+                    $agentId = $pdo->lastInsertId();
+                    redirectWithMessage(
+                        '?module=agents',
+                        "Agente AGE" . str_pad($agentId, 3, '0', STR_PAD_LEFT) . " creado exitosamente",
+                        'success'
+                    );
+                } else {
+                    throw new Exception("Error al insertar en la base de datos");
+                }
             }
+
         } catch (PDOException $e) {
+            error_log("Error creating agent: " . $e->getMessage());
             $errors['general'] = "Error al crear el agente. Intente nuevamente.";
+        } catch (Exception $e) {
+            error_log("General error creating agent: " . $e->getMessage());
+            $errors['general'] = $e->getMessage();
         }
-        */
     }
 }
 ?>
@@ -82,15 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
 </div>
 
-<!-- Success Message -->
-<?php if ($success): ?>
-    <div class="alert alert-success">
-        <h4>✅ Agente creado exitosamente</h4>
-        <p>El agente <strong><?= htmlspecialchars($formData['nombre']) ?></strong> ha sido registrado con el ID <strong>AGE<?= str_pad($agentId, 3, '0', STR_PAD_LEFT) ?></strong></p>
-        <p><strong>Nota:</strong> Esta es una simulación. En la versión completa se guardará en la base de datos.</p>
-        <a href="?module=agents" class="btn btn-primary">Ver Lista de Agentes</a>
-    </div>
-<?php endif; ?>
 
 <!-- Error Display -->
 <?php if (!empty($errors)): ?>
@@ -105,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>
 
 <!-- Agent Creation Form -->
-<?php if (!$success): ?>
 <div class="card">
     <h3>Información del Agente</h3>
 
@@ -200,11 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </form>
 </div>
-<?php endif; ?>
 
-<div class="info-message">
-    <p><strong>Nota de Desarrollo:</strong> Este formulario simula la creación de agentes. En la versión completa se integrará con la base de datos para guardar la información permanentemente.</p>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

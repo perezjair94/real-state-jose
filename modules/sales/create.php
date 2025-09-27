@@ -15,24 +15,62 @@ $errors = [];
 $formData = [];
 $success = false;
 
-// Sample data for dropdowns (in real app, would come from database)
-$properties = [
-    'INM001' => 'Casa - Calle 123 #45-67, Medellín',
-    'INM003' => 'Apartamento - Carrera 70 #25-30, Medellín',
-    'INM005' => 'Local - Avenida 50 #20-15, Medellín'
-];
+// Get data for dropdowns from database
+$properties = [];
+$clients = [];
+$agents = [];
 
-$clients = [
-    'CLI001' => 'Juan Pérez - CC 12345678',
-    'CLI002' => 'Ana López - CC 87654321',
-    'CLI003' => 'Carlos Mendoza - CC 11223344'
-];
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
 
-$agents = [
-    'AGE001' => 'María García',
-    'AGE002' => 'Luis Fernando Pérez',
-    'AGE003' => 'Carlos López'
-];
+    // Get available properties
+    $propSql = "SELECT id_inmueble, tipo_inmueble, direccion, ciudad, precio
+                FROM inmueble
+                WHERE estado = 'Disponible'
+                ORDER BY created_at DESC";
+    $propStmt = $pdo->prepare($propSql);
+    $propStmt->execute();
+
+    while ($prop = $propStmt->fetch()) {
+        $key = $prop['id_inmueble'];
+        $value = $prop['tipo_inmueble'] . ' - ' . $prop['direccion'] . ', ' . $prop['ciudad'] .
+                 ' (' . formatCurrency($prop['precio']) . ')';
+        $properties[$key] = $value;
+    }
+
+    // Get clients (buyers and sellers)
+    $clientSql = "SELECT id_cliente, nombre, apellido, tipo_documento, nro_documento, tipo_cliente
+                  FROM cliente
+                  WHERE tipo_cliente IN ('Comprador', 'Vendedor')
+                  ORDER BY nombre, apellido";
+    $clientStmt = $pdo->prepare($clientSql);
+    $clientStmt->execute();
+
+    while ($client = $clientStmt->fetch()) {
+        $key = $client['id_cliente'];
+        $value = $client['nombre'] . ' ' . $client['apellido'] . ' - ' .
+                 $client['tipo_documento'] . ' ' . $client['nro_documento'] .
+                 ' (' . $client['tipo_cliente'] . ')';
+        $clients[$key] = $value;
+    }
+
+    // Get active agents
+    $agentSql = "SELECT id_agente, nombre
+                 FROM agente
+                 WHERE activo = 1
+                 ORDER BY nombre";
+    $agentStmt = $pdo->prepare($agentSql);
+    $agentStmt->execute();
+
+    while ($agent = $agentStmt->fetch()) {
+        $agents[$agent['id_agente']] = $agent['nombre'];
+    }
+
+} catch (PDOException $e) {
+    error_log("Error loading form data: " . $e->getMessage());
+    $error = "Error al cargar los datos del formulario.";
+}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -49,17 +87,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($formData['cliente_id'])) {
         $errors['cliente_id'] = 'Debe seleccionar un cliente';
     }
-    if (empty($formData['agente_id'])) {
-        $errors['agente_id'] = 'Debe seleccionar un agente';
-    }
     if (empty($formData['valor_venta']) || !is_numeric($formData['valor_venta']) || $formData['valor_venta'] <= 0) {
         $errors['valor_venta'] = 'El valor de venta debe ser un número positivo';
     }
 
     if (empty($errors)) {
-        // For now, simulate success since database integration is pending
-        $success = true;
-        $saleId = rand(100, 999); // Simulate generated ID
+        try {
+            $db = new Database();
+            $pdo = $db->getConnection();
+
+            // Calculate commission (3% of sale value)
+            $valor = (float)$formData['valor_venta'];
+            $comision = $valor * 0.03;
+
+            // Insert new sale
+            $sql = "INSERT INTO venta (fecha_venta, valor, comision, observaciones, id_inmueble, id_cliente, id_agente)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+            $result = $stmt->execute([
+                $formData['fecha_venta'],
+                $valor,
+                $comision,
+                $formData['observaciones'] ?: null,
+                $formData['inmueble_id'],
+                $formData['cliente_id'],
+                $formData['agente_id'] ?: null
+            ]);
+
+            if ($result) {
+                $saleId = $pdo->lastInsertId();
+
+                // The trigger will automatically update property status to 'Vendido'
+
+                redirectWithMessage(
+                    '?module=sales',
+                    "Venta VEN" . str_pad($saleId, 3, '0', STR_PAD_LEFT) . " registrada exitosamente",
+                    'success'
+                );
+            } else {
+                throw new Exception("Error al insertar en la base de datos");
+            }
+
+        } catch (PDOException $e) {
+            error_log("Error creating sale: " . $e->getMessage());
+            $errors['general'] = "Error al registrar la venta. Intente nuevamente.";
+        } catch (Exception $e) {
+            error_log("General error creating sale: " . $e->getMessage());
+            $errors['general'] = $e->getMessage();
+        }
     }
 }
 ?>
@@ -145,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="inmueble_id" id="inmueble_id" required class="form-control">
                     <option value="">Seleccione el inmueble...</option>
                     <?php foreach ($properties as $id => $description): ?>
-                        <option value="<?= $id ?>" <?= ($formData['inmueble_id'] ?? '') === $id ? 'selected' : '' ?>>
+                        <option value="<?= $id ?>" <?= ($formData['inmueble_id'] ?? '') == $id ? 'selected' : '' ?>>
                             <?= htmlspecialchars($description) ?>
                         </option>
                     <?php endforeach; ?>
@@ -163,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="cliente_id" id="cliente_id" required class="form-control">
                     <option value="">Seleccione el cliente...</option>
                     <?php foreach ($clients as $id => $description): ?>
-                        <option value="<?= $id ?>" <?= ($formData['cliente_id'] ?? '') === $id ? 'selected' : '' ?>>
+                        <option value="<?= $id ?>" <?= ($formData['cliente_id'] ?? '') == $id ? 'selected' : '' ?>>
                             <?= htmlspecialchars($description) ?>
                         </option>
                     <?php endforeach; ?>
@@ -174,11 +249,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="form-group">
-                <label for="agente_id" class="required">Agente Responsable:</label>
-                <select name="agente_id" id="agente_id" required class="form-control">
+                <label for="agente_id">Agente Responsable:</label>
+                <select name="agente_id" id="agente_id" class="form-control">
                     <option value="">Seleccione el agente...</option>
                     <?php foreach ($agents as $id => $name): ?>
-                        <option value="<?= $id ?>" <?= ($formData['agente_id'] ?? '') === $id ? 'selected' : '' ?>>
+                        <option value="<?= $id ?>" <?= ($formData['agente_id'] ?? '') == $id ? 'selected' : '' ?>>
                             <?= htmlspecialchars($name) ?>
                         </option>
                     <?php endforeach; ?>
@@ -237,9 +312,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 <?php endif; ?>
 
-<div class="info-message">
-    <p><strong>Nota de Desarrollo:</strong> Este formulario simula el registro de ventas. En la versión completa se integrará con la base de datos y se generarán documentos de la transacción.</p>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

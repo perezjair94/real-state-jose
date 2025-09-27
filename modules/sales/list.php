@@ -10,27 +10,33 @@ if (!defined('APP_ACCESS')) {
     die('Direct access not permitted');
 }
 
-// For now, use sample data since database structure is not fully set up
-$sales = [
-    [
-        'id_venta' => 1,
-        'fecha_venta' => '2024-09-15',
-        'inmueble_id' => 'INM002',
-        'cliente_nombre' => 'Juan Pérez',
-        'valor_venta' => 280000000,
-        'agente_nombre' => 'María García',
-        'created_at' => '2024-09-15 16:30:00'
-    ],
-    [
-        'id_venta' => 2,
-        'fecha_venta' => '2024-09-10',
-        'inmueble_id' => 'INM005',
-        'cliente_nombre' => 'Ana López',
-        'valor_venta' => 350000000,
-        'agente_nombre' => 'Luis Pérez',
-        'created_at' => '2024-09-10 11:20:00'
-    ]
-];
+// Get sales from database
+$sales = [];
+
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
+
+    // Get sales with related data
+    $sql = "SELECT v.id_venta, v.fecha_venta, v.valor, v.comision, v.observaciones, v.created_at,
+                   CONCAT('INM', LPAD(i.id_inmueble, 3, '0')) as inmueble_codigo,
+                   CONCAT(i.tipo_inmueble, ' - ', i.direccion) as inmueble_descripcion,
+                   CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
+                   a.nombre as agente_nombre
+            FROM venta v
+            INNER JOIN inmueble i ON v.id_inmueble = i.id_inmueble
+            INNER JOIN cliente c ON v.id_cliente = c.id_cliente
+            LEFT JOIN agente a ON v.id_agente = a.id_agente
+            ORDER BY v.fecha_venta DESC, v.created_at DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    $sales = $stmt->fetchAll();
+
+} catch (PDOException $e) {
+    error_log("Error fetching sales: " . $e->getMessage());
+    $error = "Error al cargar las ventas. Intente nuevamente.";
+}
 ?>
 
 <div class="module-header">
@@ -74,12 +80,16 @@ $sales = [
                         </td>
                         <td><?= formatDate($sale['fecha_venta']) ?></td>
                         <td>
-                            <span class="property-id"><?= htmlspecialchars($sale['inmueble_id']) ?></span>
+                            <span class="property-id"><?= htmlspecialchars($sale['inmueble_codigo']) ?></span>
+                            <div class="property-description"><?= htmlspecialchars($sale['inmueble_descripcion']) ?></div>
                         </td>
                         <td><?= htmlspecialchars($sale['cliente_nombre']) ?></td>
-                        <td><?= htmlspecialchars($sale['agente_nombre']) ?></td>
+                        <td><?= htmlspecialchars($sale['agente_nombre'] ?: 'Sin agente') ?></td>
                         <td>
-                            <strong class="price"><?= formatCurrency($sale['valor_venta']) ?></strong>
+                            <strong class="price"><?= formatCurrency($sale['valor']) ?></strong>
+                            <?php if ($sale['comision']): ?>
+                                <div class="commission">Comisión: <?= formatCurrency($sale['comision']) ?></div>
+                            <?php endif; ?>
                         </td>
                         <td class="table-actions">
                             <a href="?module=sales&action=view&id=<?= $sale['id_venta'] ?>"
@@ -108,18 +118,19 @@ $sales = [
         </div>
         <div class="stat-item">
             <span class="stat-label">Valor Total</span>
-            <span class="stat-value"><?= formatCurrency(array_sum(array_column($sales, 'valor_venta'))) ?></span>
+            <span class="stat-value"><?= formatCurrency(array_sum(array_column($sales, 'valor'))) ?></span>
         </div>
         <div class="stat-item">
             <span class="stat-label">Promedio por Venta</span>
-            <span class="stat-value"><?= formatCurrency(array_sum(array_column($sales, 'valor_venta')) / count($sales)) ?></span>
+            <span class="stat-value"><?= count($sales) > 0 ? formatCurrency(array_sum(array_column($sales, 'valor')) / count($sales)) : '$0' ?></span>
         </div>
     </div>
 </div>
 
-<div class="info-message">
-    <p><strong>Nota:</strong> Este módulo muestra datos de ejemplo. La integración completa con la base de datos está en desarrollo.</p>
-</div>
+<!-- Error Display -->
+<?php if (isset($error)): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
 <style>
 .stats-grid {
@@ -156,5 +167,29 @@ $sales = [
     border-radius: var(--border-radius);
     font-size: var(--font-size-xs);
     font-weight: 500;
+}
+
+.property-description {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.commission {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
 }
 </style>
