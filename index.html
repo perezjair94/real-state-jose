@@ -838,10 +838,34 @@
     <script>
         // Verificar compatibilidad y corregir problemas comunes
         (function() {
-            // Polyfill para Element.matches si no existe
+            // Polyfill completo para Element.matches
             if (!Element.prototype.matches) {
                 Element.prototype.matches = Element.prototype.msMatchesSelector ||
-                                            Element.prototype.webkitMatchesSelector;
+                                            Element.prototype.webkitMatchesSelector ||
+                                            function(s) {
+                                                var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+                                                var i = matches.length;
+                                                while (--i >= 0 && matches.item(i) !== this) {}
+                                                return i > -1;
+                                            };
+            }
+
+            // Verificar que el polyfill funcione
+            try {
+                var testEl = document.createElement('div');
+                testEl.matches('div');
+            } catch (e) {
+                console.warn('Polyfill de matches no funcionó, aplicando alternativa');
+                Element.prototype.matches = function(s) {
+                    try {
+                        var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+                        var i = matches.length;
+                        while (--i >= 0 && matches.item(i) !== this) {}
+                        return i > -1;
+                    } catch (error) {
+                        return false;
+                    }
+                };
             }
 
             // Manejar errores globales relacionados con matches
@@ -853,8 +877,8 @@
                             listener.call(this, event);
                         }
                     } catch (error) {
-                        if (error.message && error.message.includes('matches is not a function')) {
-                            console.warn('Error matches capturado y corregido');
+                        if (error.message && error.message.includes('is not a function')) {
+                            console.warn('Error de función capturado y corregido:', error.message);
                             return;
                         }
                         throw error;
@@ -908,7 +932,18 @@
         // Función para manejar eventos de forma segura
         function safeEventHandler(event, callback) {
             try {
-                if (event && event.target && typeof event.target.matches === 'function') {
+                if (event && event.target) {
+                    // Verificar y agregar matches si no existe
+                    if (!event.target.matches) {
+                        event.target.matches = event.target.msMatchesSelector ||
+                                             event.target.webkitMatchesSelector ||
+                                             function(s) {
+                                                 var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+                                                 var i = matches.length;
+                                                 while (--i >= 0 && matches.item(i) !== this) {}
+                                                 return i > -1;
+                                             };
+                    }
                     callback(event);
                 }
             } catch (error) {
@@ -946,11 +981,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Manejo global de errores
             window.addEventListener('error', function(event) {
-                if (event.message && event.message.includes('matches is not a function')) {
-                    console.warn('Error capturado y manejado: matches is not a function');
+                if (event.message && (event.message.includes('matches is not a function') ||
+                                     event.message.includes('is not a function'))) {
+                    console.warn('Error capturado y manejado:', event.message);
                     event.preventDefault();
                     return false;
                 }
+            });
+
+            // Manejo de errores no capturados en promesas
+            window.addEventListener('unhandledrejection', function(event) {
+                console.warn('Error no manejado en promesa:', event.reason);
+                event.preventDefault();
             });
 
             // Agregar event listeners a todos los formularios
