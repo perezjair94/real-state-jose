@@ -6,6 +6,14 @@
  */
 
 /**
+ * Polyfill for Element.matches() for browser compatibility
+ */
+if (!Element.prototype.matches) {
+  Element.prototype.matches = Element.prototype.msMatchesSelector ||
+                              Element.prototype.webkitMatchesSelector;
+}
+
+/**
  * Main Application Object
  */
 const App = {
