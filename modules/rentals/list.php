@@ -10,33 +10,63 @@ if (!defined('APP_ACCESS')) {
     die('Direct access not permitted');
 }
 
-// For now, use sample data since database structure is not fully set up
-$rentals = [
-    [
-        'id_arriendo' => 1,
-        'inmueble_id' => 'INM003',
-        'arrendatario' => 'Ana López',
-        'arrendador' => 'Carlos Mendoza',
-        'canon_mensual' => 1200000,
-        'fecha_inicio' => '2024-08-01',
-        'fecha_fin' => '2025-08-01',
-        'estado' => 'Activo',
-        'deposito' => 2400000,
-        'created_at' => '2024-08-01 10:00:00'
-    ],
-    [
-        'id_arriendo' => 2,
-        'inmueble_id' => 'INM007',
-        'arrendatario' => 'Roberto Silva',
-        'arrendador' => 'María Gómez',
-        'canon_mensual' => 800000,
-        'fecha_inicio' => '2024-07-15',
-        'fecha_fin' => '2025-07-15',
-        'estado' => 'Activo',
-        'deposito' => 1600000,
-        'created_at' => '2024-07-15 14:30:00'
-    ]
-];
+// Get rentals from database
+$rentals = [];
+$searchTerm = $_GET['search'] ?? '';
+$estadoFilter = $_GET['estado'] ?? '';
+$mesFilter = $_GET['mes'] ?? '';
+
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
+
+    // Build WHERE clause for filters
+    $whereConditions = [];
+    $params = [];
+
+    if (!empty($searchTerm)) {
+        $whereConditions[] = "(a.observaciones LIKE ? OR cl.nombre LIKE ? OR cl.apellido LIKE ? OR i.direccion LIKE ?)";
+        $searchWildcard = "%{$searchTerm}%";
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+    }
+
+    if (!empty($estadoFilter)) {
+        $whereConditions[] = "a.estado = ?";
+        $params[] = $estadoFilter;
+    }
+
+    if (!empty($mesFilter)) {
+        $whereConditions[] = "MONTH(a.fecha_fin) = ?";
+        $params[] = $mesFilter;
+    }
+
+    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+    // Get rentals with related data
+    $sql = "SELECT a.id_arriendo, a.fecha_inicio, a.fecha_fin, a.canon_mensual, a.deposito,
+                   a.estado, a.observaciones, a.created_at,
+                   CONCAT('INM', LPAD(i.id_inmueble, 3, '0')) as inmueble_codigo,
+                   CONCAT(i.tipo_inmueble, ' - ', i.direccion) as inmueble_descripcion,
+                   CONCAT(cl.nombre, ' ', cl.apellido) as arrendatario_nombre,
+                   ag.nombre as agente_nombre
+            FROM arriendo a
+            INNER JOIN inmueble i ON a.id_inmueble = i.id_inmueble
+            INNER JOIN cliente cl ON a.id_cliente = cl.id_cliente
+            LEFT JOIN agente ag ON a.id_agente = ag.id_agente
+            {$whereClause}
+            ORDER BY a.created_at DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $rentals = $stmt->fetchAll();
+
+} catch (PDOException $e) {
+    error_log("Error fetching rentals: " . $e->getMessage());
+    $error = "Error al cargar los arriendos. Intente nuevamente.";
+}
 ?>
 
 <div class="module-header">
@@ -59,21 +89,33 @@ $rentals = [
     </button>
 </div>
 
-<!-- Filter Section -->
+<!-- Search and Filter Section -->
 <div class="card">
-    <h3>Filtros</h3>
+    <h3>Filtros de Búsqueda</h3>
     <form method="GET" class="filter-form">
         <input type="hidden" name="module" value="rentals">
 
         <div class="form-row">
             <div class="form-group">
+                <label for="search">Buscar:</label>
+                <input
+                    type="text"
+                    id="search"
+                    name="search"
+                    value="<?= htmlspecialchars($searchTerm) ?>"
+                    placeholder="Arrendatario, dirección, observaciones..."
+                    class="form-control"
+                >
+            </div>
+
+            <div class="form-group">
                 <label for="estado">Estado:</label>
                 <select id="estado" name="estado" class="form-control">
                     <option value="">Todos los estados</option>
-                    <option value="Activo">Activo</option>
-                    <option value="Vencido">Vencido</option>
-                    <option value="Terminado">Terminado</option>
-                    <option value="Moroso">Moroso</option>
+                    <option value="Activo" <?= $estadoFilter === 'Activo' ? 'selected' : '' ?>>Activo</option>
+                    <option value="Vencido" <?= $estadoFilter === 'Vencido' ? 'selected' : '' ?>>Vencido</option>
+                    <option value="Terminado" <?= $estadoFilter === 'Terminado' ? 'selected' : '' ?>>Terminado</option>
+                    <option value="Moroso" <?= $estadoFilter === 'Moroso' ? 'selected' : '' ?>>Moroso</option>
                 </select>
             </div>
 
@@ -82,18 +124,35 @@ $rentals = [
                 <select id="mes" name="mes" class="form-control">
                     <option value="">Todos los meses</option>
                     <?php for ($i = 1; $i <= 12; $i++): ?>
-                        <option value="<?= $i ?>"><?= date('F', mktime(0, 0, 0, $i, 1)) ?></option>
+                        <option value="<?= $i ?>" <?= $mesFilter == $i ? 'selected' : '' ?>>
+                            <?= date('F', mktime(0, 0, 0, $i, 1)) ?>
+                        </option>
                     <?php endfor; ?>
                 </select>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-            <a href="?module=rentals" class="btn btn-secondary">Limpiar</a>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a href="?module=rentals" class="btn btn-secondary">Limpiar Filtros</a>
         </div>
     </form>
 </div>
+
+<!-- Results Summary -->
+<div class="results-summary">
+    <p>
+        Mostrando <?= count($rentals) ?> arriendos
+        <?php if (!empty($searchTerm) || !empty($estadoFilter) || !empty($mesFilter)): ?>
+            (filtrados)
+        <?php endif; ?>
+    </p>
+</div>
+
+<!-- Error Display -->
+<?php if (isset($error)): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
 <!-- Rentals Table -->
 <div class="card">
@@ -105,7 +164,7 @@ $rentals = [
                     <th>ID</th>
                     <th>Inmueble</th>
                     <th>Arrendatario</th>
-                    <th>Arrendador</th>
+                    <th>Agente</th>
                     <th>Canon Mensual</th>
                     <th>Fecha Inicio</th>
                     <th>Fecha Fin</th>
@@ -120,10 +179,17 @@ $rentals = [
                             <strong>ARR<?= str_pad($rental['id_arriendo'], 3, '0', STR_PAD_LEFT) ?></strong>
                         </td>
                         <td>
-                            <span class="property-id"><?= htmlspecialchars($rental['inmueble_id']) ?></span>
+                            <span class="property-id"><?= htmlspecialchars($rental['inmueble_codigo']) ?></span>
+                            <div class="property-description"><?= htmlspecialchars($rental['inmueble_descripcion']) ?></div>
                         </td>
-                        <td><?= htmlspecialchars($rental['arrendatario']) ?></td>
-                        <td><?= htmlspecialchars($rental['arrendador']) ?></td>
+                        <td><?= htmlspecialchars($rental['arrendatario_nombre']) ?></td>
+                        <td>
+                            <?php if ($rental['agente_nombre']): ?>
+                                <?= htmlspecialchars($rental['agente_nombre']) ?>
+                            <?php else: ?>
+                                <span class="text-muted">Sin agente</span>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <strong class="price"><?= formatCurrency($rental['canon_mensual']) ?></strong>
                             <div class="deposit-info">
@@ -191,9 +257,6 @@ $rentals = [
     </div>
 </div>
 
-<div class="info-message">
-    <p><strong>Nota:</strong> Este módulo muestra datos de ejemplo. La integración completa con la base de datos está en desarrollo.</p>
-</div>
 
 <style>
 .stats-grid {
@@ -249,5 +312,37 @@ $rentals = [
     margin-top: var(--spacing-md);
     display: flex;
     gap: var(--spacing-sm);
+}
+
+.property-description {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.text-muted {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.results-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
 }
 </style>

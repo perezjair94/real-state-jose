@@ -10,42 +10,75 @@ if (!defined('APP_ACCESS')) {
     die('Direct access not permitted');
 }
 
-// For now, use sample data since database structure is not fully set up
-$visits = [
-    [
-        'id_visita' => 1,
-        'fecha_visita' => '2024-09-20',
-        'hora_visita' => '10:00',
-        'inmueble_id' => 'INM001',
-        'cliente_nombre' => 'Juan Pérez',
-        'agente_nombre' => 'María García',
-        'estado' => 'Programada',
-        'observaciones' => 'Cliente muy interesado en la propiedad',
-        'created_at' => '2024-09-18 15:30:00'
-    ],
-    [
-        'id_visita' => 2,
-        'fecha_visita' => '2024-09-18',
-        'hora_visita' => '14:00',
-        'inmueble_id' => 'INM005',
-        'cliente_nombre' => 'Ana López',
-        'agente_nombre' => 'Luis Pérez',
-        'estado' => 'Realizada',
-        'observaciones' => 'Visita exitosa, cliente solicita propuesta',
-        'created_at' => '2024-09-16 11:20:00'
-    ],
-    [
-        'id_visita' => 3,
-        'fecha_visita' => '2024-09-22',
-        'hora_visita' => '16:30',
-        'inmueble_id' => 'INM003',
-        'cliente_nombre' => 'Roberto Silva',
-        'agente_nombre' => 'María García',
-        'estado' => 'Programada',
-        'observaciones' => '',
-        'created_at' => '2024-09-19 09:45:00'
-    ]
-];
+// Get visits from database
+$visits = [];
+$searchTerm = $_GET['search'] ?? '';
+$estadoFilter = $_GET['estado'] ?? '';
+$fechaFilter = $_GET['fecha'] ?? '';
+$agenteFilter = $_GET['agente'] ?? '';
+
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
+
+    // Build WHERE clause for filters
+    $whereConditions = [];
+    $params = [];
+
+    if (!empty($searchTerm)) {
+        $whereConditions[] = "(v.observaciones LIKE ? OR cl.nombre LIKE ? OR cl.apellido LIKE ? OR i.direccion LIKE ?)";
+        $searchWildcard = "%{$searchTerm}%";
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+    }
+
+    if (!empty($estadoFilter)) {
+        $whereConditions[] = "v.estado = ?";
+        $params[] = $estadoFilter;
+    }
+
+    if (!empty($fechaFilter)) {
+        $whereConditions[] = "v.fecha_visita = ?";
+        $params[] = $fechaFilter;
+    }
+
+    if (!empty($agenteFilter)) {
+        $whereConditions[] = "v.id_agente = ?";
+        $params[] = $agenteFilter;
+    }
+
+    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+    // Get visits with related data
+    $sql = "SELECT v.id_visita, v.fecha_visita, v.hora_visita, v.estado, v.observaciones, v.calificacion, v.created_at,
+                   CONCAT('INM', LPAD(i.id_inmueble, 3, '0')) as inmueble_codigo,
+                   CONCAT(i.tipo_inmueble, ' - ', i.direccion) as inmueble_descripcion,
+                   CONCAT(cl.nombre, ' ', cl.apellido) as cliente_nombre,
+                   ag.nombre as agente_nombre
+            FROM visita v
+            INNER JOIN inmueble i ON v.id_inmueble = i.id_inmueble
+            INNER JOIN cliente cl ON v.id_cliente = cl.id_cliente
+            INNER JOIN agente ag ON v.id_agente = ag.id_agente
+            {$whereClause}
+            ORDER BY v.fecha_visita ASC, v.hora_visita ASC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $visits = $stmt->fetchAll();
+
+    // Get agents for filter dropdown
+    $agentSql = "SELECT id_agente, nombre FROM agente WHERE activo = 1 ORDER BY nombre";
+    $agentStmt = $pdo->prepare($agentSql);
+    $agentStmt->execute();
+    $agents = $agentStmt->fetchAll();
+
+} catch (PDOException $e) {
+    error_log("Error fetching visits: " . $e->getMessage());
+    $error = "Error al cargar las visitas. Intente nuevamente.";
+    $agents = [];
+}
 ?>
 
 <div class="module-header">
@@ -76,28 +109,50 @@ $visits = [
 
         <div class="form-row">
             <div class="form-group">
+                <label for="search">Buscar:</label>
+                <input
+                    type="text"
+                    id="search"
+                    name="search"
+                    value="<?= htmlspecialchars($searchTerm) ?>"
+                    placeholder="Cliente, dirección, observaciones..."
+                    class="form-control"
+                >
+            </div>
+
+            <div class="form-group">
                 <label for="estado">Estado:</label>
                 <select id="estado" name="estado" class="form-control">
                     <option value="">Todos los estados</option>
-                    <option value="Programada">Programada</option>
-                    <option value="Realizada">Realizada</option>
-                    <option value="Cancelada">Cancelada</option>
-                    <option value="Reprogramada">Reprogramada</option>
+                    <option value="Programada" <?= $estadoFilter === 'Programada' ? 'selected' : '' ?>>Programada</option>
+                    <option value="Realizada" <?= $estadoFilter === 'Realizada' ? 'selected' : '' ?>>Realizada</option>
+                    <option value="Cancelada" <?= $estadoFilter === 'Cancelada' ? 'selected' : '' ?>>Cancelada</option>
+                    <option value="Reprogramada" <?= $estadoFilter === 'Reprogramada' ? 'selected' : '' ?>>Reprogramada</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="fecha">Fecha:</label>
-                <input type="date" id="fecha" name="fecha" class="form-control">
+                <input
+                    type="date"
+                    id="fecha"
+                    name="fecha"
+                    value="<?= htmlspecialchars($fechaFilter) ?>"
+                    class="form-control"
+                >
             </div>
+        </div>
 
+        <div class="form-row">
             <div class="form-group">
                 <label for="agente">Agente:</label>
                 <select id="agente" name="agente" class="form-control">
                     <option value="">Todos los agentes</option>
-                    <option value="María García">María García</option>
-                    <option value="Luis Pérez">Luis Pérez</option>
-                    <option value="Carlos López">Carlos López</option>
+                    <?php foreach ($agents as $agent): ?>
+                        <option value="<?= $agent['id_agente'] ?>" <?= $agenteFilter == $agent['id_agente'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($agent['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
@@ -174,7 +229,8 @@ $visits = [
                             <strong><?= $visit['hora_visita'] ?></strong>
                         </td>
                         <td>
-                            <span class="property-id"><?= htmlspecialchars($visit['inmueble_id']) ?></span>
+                            <span class="property-id"><?= htmlspecialchars($visit['inmueble_codigo']) ?></span>
+                            <div class="property-description"><?= htmlspecialchars($visit['inmueble_descripcion']) ?></div>
                         </td>
                         <td><?= htmlspecialchars($visit['cliente_nombre']) ?></td>
                         <td><?= htmlspecialchars($visit['agente_nombre']) ?></td>
@@ -182,6 +238,9 @@ $visits = [
                             <span class="status <?= strtolower($visit['estado']) ?>">
                                 <?= htmlspecialchars($visit['estado']) ?>
                             </span>
+                            <?php if ($visit['calificacion']): ?>
+                                <div class="interest-level"><?= htmlspecialchars($visit['calificacion']) ?></div>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <div class="observations">
@@ -234,9 +293,10 @@ $visits = [
     </div>
 </div>
 
-<div class="info-message">
-    <p><strong>Nota:</strong> Este módulo muestra datos de ejemplo. La integración completa con la base de datos está en desarrollo.</p>
-</div>
+<!-- Error Display -->
+<?php if (isset($error)): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
 <style>
 .highlight-card {
@@ -352,5 +412,30 @@ $visits = [
     margin-top: var(--spacing-md);
     display: flex;
     gap: var(--spacing-sm);
+}
+
+.property-description {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.interest-level {
+    font-size: var(--font-size-xs);
+    color: var(--accent-color);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
 }
 </style>

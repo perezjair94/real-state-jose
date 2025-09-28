@@ -15,18 +15,48 @@ $errors = [];
 $formData = [];
 $success = false;
 
-// Sample data for dropdowns (in real app, would come from database)
-$properties = [
-    'INM001' => 'Casa - Calle 123 #45-67, Medellín',
-    'INM003' => 'Apartamento - Carrera 70 #25-30, Medellín',
-    'INM005' => 'Local - Avenida 50 #20-15, Medellín'
-];
+// Get data for dropdowns from database
+$properties = [];
+$clients = [];
 
-$clients = [
-    'CLI001' => 'Juan Pérez - CC 12345678',
-    'CLI002' => 'Ana López - CC 87654321',
-    'CLI003' => 'Carlos Mendoza - CC 11223344'
-];
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
+
+    // Get available properties
+    $propSql = "SELECT id_inmueble, tipo_inmueble, direccion, ciudad, precio, estado
+                FROM inmueble
+                WHERE estado IN ('Disponible', 'Reservado')
+                ORDER BY created_at DESC";
+    $propStmt = $pdo->prepare($propSql);
+    $propStmt->execute();
+
+    while ($prop = $propStmt->fetch()) {
+        $key = $prop['id_inmueble'];
+        $value = $prop['tipo_inmueble'] . ' - ' . $prop['direccion'] . ', ' . $prop['ciudad'] .
+                 ' (' . formatCurrency($prop['precio']) . ') - ' . $prop['estado'];
+        $properties[$key] = $value;
+    }
+
+    // Get all clients
+    $clientSql = "SELECT id_cliente, nombre, apellido, tipo_documento, nro_documento, tipo_cliente
+                  FROM cliente
+                  ORDER BY nombre, apellido";
+    $clientStmt = $pdo->prepare($clientSql);
+    $clientStmt->execute();
+
+    while ($client = $clientStmt->fetch()) {
+        $key = $client['id_cliente'];
+        $value = $client['nombre'] . ' ' . $client['apellido'] . ' - ' .
+                 $client['tipo_documento'] . ' ' . $client['nro_documento'] .
+                 ' (' . $client['tipo_cliente'] . ')';
+        $clients[$key] = $value;
+    }
+
+} catch (PDOException $e) {
+    error_log("Error loading form data: " . $e->getMessage());
+    $error = "Error al cargar los datos del formulario.";
+}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -56,9 +86,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // For now, simulate success since database integration is pending
-        $success = true;
-        $contractId = rand(100, 999); // Simulate generated ID
+        try {
+            $db = new Database();
+            $pdo = $db->getConnection();
+
+            // Handle file upload if present
+            $archivoContrato = null;
+            if (isset($_FILES['archivo_contrato']) && $_FILES['archivo_contrato']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['archivo_contrato'];
+                $validation = validateUploadedFile($file, ALLOWED_DOCUMENT_TYPES);
+
+                if ($validation['valid']) {
+                    $newFilename = generateUniqueFilename($file['name']);
+                    $uploadPath = UPLOAD_PATH_CONTRACTS . $newFilename;
+
+                    // Create directory if it doesn't exist
+                    if (!file_exists(UPLOAD_PATH_CONTRACTS)) {
+                        mkdir(UPLOAD_PATH_CONTRACTS, 0755, true);
+                    }
+
+                    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                        $archivoContrato = $newFilename;
+                    }
+                } else {
+                    $errors['archivo_contrato'] = $validation['error'];
+                }
+            }
+
+            if (empty($errors)) {
+                // Insert new contract
+                $sql = "INSERT INTO contrato (tipo_contrato, fecha_inicio, fecha_fin, valor_contrato,
+                        archivo_contrato, estado, observaciones, id_inmueble, id_cliente, id_agente)
+                        VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, NULL)";
+
+                $stmt = $pdo->prepare($sql);
+                $result = $stmt->execute([
+                    $formData['tipo_contrato'],
+                    $formData['fecha_inicio'],
+                    $formData['fecha_fin'] ?: null,
+                    $formData['valor_contrato'] ?: 0,
+                    $archivoContrato,
+                    $formData['clausulas_especiales'] ?: null,
+                    $formData['inmueble_id'],
+                    $formData['cliente_id']
+                ]);
+
+                if ($result) {
+                    $contractId = $pdo->lastInsertId();
+
+                    redirectWithMessage(
+                        '?module=contracts',
+                        "Contrato CON" . str_pad($contractId, 3, '0', STR_PAD_LEFT) . " creado exitosamente",
+                        'success'
+                    );
+                } else {
+                    throw new Exception("Error al insertar en la base de datos");
+                }
+            }
+
+        } catch (PDOException $e) {
+            error_log("Error creating contract: " . $e->getMessage());
+            $errors['general'] = "Error al crear el contrato. Intente nuevamente.";
+        } catch (Exception $e) {
+            error_log("General error creating contract: " . $e->getMessage());
+            $errors['general'] = $e->getMessage();
+        }
     }
 }
 ?>
@@ -127,14 +219,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="tipo_contrato" class="required">Tipo de Contrato:</label>
                 <select name="tipo_contrato" id="tipo_contrato" required class="form-control">
                     <option value="">Seleccione el tipo...</option>
-                    <option value="Compraventa" <?= ($formData['tipo_contrato'] ?? '') === 'Compraventa' ? 'selected' : '' ?>>
-                        Compraventa
+                    <option value="Venta" <?= ($formData['tipo_contrato'] ?? '') === 'Venta' ? 'selected' : '' ?>>
+                        Venta
                     </option>
-                    <option value="Arrendamiento" <?= ($formData['tipo_contrato'] ?? '') === 'Arrendamiento' ? 'selected' : '' ?>>
-                        Arrendamiento
-                    </option>
-                    <option value="Promesa de Compraventa" <?= ($formData['tipo_contrato'] ?? '') === 'Promesa de Compraventa' ? 'selected' : '' ?>>
-                        Promesa de Compraventa
+                    <option value="Arriendo" <?= ($formData['tipo_contrato'] ?? '') === 'Arriendo' ? 'selected' : '' ?>>
+                        Arriendo
                     </option>
                 </select>
                 <?php if (!empty($errors['tipo_contrato'])): ?>
@@ -264,9 +353,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 <?php endif; ?>
 
-<div class="info-message">
-    <p><strong>Nota de Desarrollo:</strong> Este formulario simula la creación de contratos. En la versión completa se integrará con la base de datos y se generarán documentos PDF automáticamente.</p>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -279,11 +365,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleValueField() {
         const tipo = tipoContrato.value;
 
-        if (tipo === 'Compraventa' || tipo === 'Promesa de Compraventa') {
+        if (tipo === 'Venta') {
             valorGroup.style.display = 'block';
             valorInput.required = true;
-            valorHelp.textContent = tipo === 'Compraventa' ? 'Precio de venta total' : 'Valor de la promesa';
-        } else if (tipo === 'Arrendamiento') {
+            valorHelp.textContent = 'Precio de venta total';
+        } else if (tipo === 'Arriendo') {
             valorGroup.style.display = 'block';
             valorInput.required = false;
             valorHelp.textContent = 'Canon mensual de arrendamiento';
@@ -304,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (fechaInicio && fechaFin) {
         fechaInicio.addEventListener('change', function() {
-            if (tipoContrato.value === 'Arrendamiento' && !fechaFin.value) {
+            if (tipoContrato.value === 'Arriendo' && !fechaFin.value) {
                 const startDate = new Date(this.value);
                 const endDate = new Date(startDate);
                 endDate.setFullYear(endDate.getFullYear() + 1); // Add 1 year
