@@ -6,10 +6,10 @@
 - **Properties (Inmuebles)**: list.php, create.php, edit.php, view.php, ajax.php
 - **Clients (Clientes)**: list.php, create.php, edit.php, view.php, ajax.php
 - **Agents (Agentes)**: list.php, create.php, edit.php, view.php, ajax.php
+- **Sales (Ventas)**: list.php, create.php, edit.php, view.php, ajax.php
 - **Database Configuration**: config/database.php, test_connection.php
 
 ### 🟡 Módulos Parcialmente Conectados
-- **Sales (Ventas)**: ✅ list.php, ✅ create.php
 - **Contracts (Contratos)**: ✅ list.php, ✅ create.php
 - **Rentals (Arriendos)**: ✅ list.php, ✅ create.php
 - **Visits (Visitas)**: ✅ list.php, ✅ create.php
@@ -29,9 +29,12 @@
 - [x] `modules/agents/view.php` - Vista detallada de agentes
 - [x] `modules/agents/ajax.php` - Operaciones AJAX mejoradas
 
+#### 1.3. ✅ Módulo Sales (Ventas) - COMPLETADO
+- [x] `modules/sales/edit.php` - Formulario de edición de ventas
+- [x] `modules/sales/view.php` - Vista detallada de ventas
+- [x] `modules/sales/ajax.php` - Operaciones AJAX completas
+
 #### 2. Funcionalidades de Edición - ALTA
-- [ ] `modules/sales/edit.php` - Editar ventas
-- [ ] `modules/sales/view.php` - Ver detalles de ventas
 - [ ] `modules/contracts/edit.php` - Editar contratos
 - [ ] `modules/contracts/view.php` - Ver detalles de contratos
 - [ ] `modules/rentals/edit.php` - Editar arriendos
@@ -42,7 +45,7 @@
 ### MEDIA PRIORIDAD - Funcionalidades AJAX
 
 #### 3. Archivos AJAX Faltantes
-- [ ] `modules/sales/ajax.php` - Operaciones AJAX para ventas
+- [x] `modules/sales/ajax.php` - Operaciones AJAX para ventas
 - [ ] `modules/contracts/ajax.php` - Operaciones AJAX para contratos
 - [ ] `modules/rentals/ajax.php` - Operaciones AJAX para arriendos
 - [ ] `modules/visits/ajax.php` - Operaciones AJAX para visitas
@@ -52,7 +55,7 @@
 #### 4. Operaciones de Eliminación
 - [ ] Implementar eliminación en `properties/ajax.php`
 - [x] Implementar eliminación en `agents/ajax.php`
-- [ ] Implementar eliminación en `sales/ajax.php`
+- [x] Implementar eliminación en `sales/ajax.php`
 - [ ] Implementar eliminación en `contracts/ajax.php`
 - [ ] Implementar eliminación en `rentals/ajax.php`
 - [ ] Implementar eliminación en `visits/ajax.php`
@@ -62,7 +65,7 @@
 - [ ] Exportar a CSV - Properties
 - [x] Exportar a CSV - Clients
 - [x] Exportar a CSV - Agents
-- [ ] Exportar a CSV - Sales
+- [x] Exportar a CSV - Sales
 - [ ] Exportar a CSV - Contracts
 - [ ] Exportar a CSV - Rentals
 - [ ] Exportar a CSV - Visits
@@ -107,11 +110,8 @@
 
 ## 📋 Resumen de Archivos a Crear
 
-### Archivos PHP Faltantes (13 archivos)
+### Archivos PHP Faltantes (10 archivos)
 ```
-modules/sales/edit.php
-modules/sales/view.php
-modules/sales/ajax.php
 modules/contracts/edit.php
 modules/contracts/view.php
 modules/contracts/ajax.php
@@ -139,18 +139,28 @@ modules/reports/properties.php
 
 1. ~~**Completar módulo Clients**~~ ✅ COMPLETADO
 2. ~~**Completar módulo Agents**~~ ✅ COMPLETADO
-3. **Completar módulos Sales, Contracts, Rentals, Visits** (edit.php, view.php, ajax.php)
+3. ~~**Completar módulo Sales**~~ ✅ COMPLETADO
+4. **Completar módulos Contracts, Rentals, Visits** (edit.php, view.php, ajax.php)
 3. **Implementar archivos AJAX** faltantes
 4. **Agregar funcionalidades de eliminación**
 5. **Desarrollar sistema de reportes básicos**
 
 ## 📊 Progreso Estimado
 
-- **Completado**: ~70% (3 de 7 módulos completamente conectados)
-- **Pendiente**: ~30% (13 archivos PHP + funcionalidades adicionales)
-- **Tiempo estimado**: 10-13 horas de desarrollo
+- **Completado**: ~75% (4 de 7 módulos completamente conectados)
+- **Pendiente**: ~25% (10 archivos PHP + funcionalidades adicionales)
+- **Tiempo estimado**: 8-10 horas de desarrollo
 
 ### 🎉 Últimos Logros
+- ✅ **Módulo Sales completamente implementado** (27 Sept 2025)
+  - Formulario de edición con selector de propiedades, clientes y agentes
+  - Vista detallada con resumen financiero y línea de tiempo
+  - AJAX completo con transacciones (actualiza estado del inmueble automáticamente)
+  - Búsqueda avanzada por fechas, valores y propiedades
+  - Estadísticas de ventas por período y top agentes
+  - Eliminación inteligente (restaura estado del inmueble)
+  - Exportación con filtros de fecha
+
 - ✅ **Módulo Agents completamente implementado** (27 Sept 2025)
   - Formularios edit.php y view.php ya existían
   - AJAX mejorado con operaciones completas (CRUD, búsqueda, validación, estadísticas)
