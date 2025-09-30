@@ -230,6 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $client) {
         <h3>Modificar Información</h3>
 
         <form method="POST" id="clientEditForm" class="form-horizontal">
+            <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
 
             <!-- Personal Information Section -->
             <fieldset>

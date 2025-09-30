@@ -174,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h3>Información del Cliente</h3>
 
     <form method="POST" id="clientForm" class="form-horizontal">
+        <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
 
         <!-- Personal Information Section -->
         <fieldset>
