@@ -177,12 +177,36 @@ function handleUpdateStatus($pdo, &$response) {
         return;
     }
 
+    // First, verify the property exists
+    $checkSql = "SELECT estado FROM inmueble WHERE id_inmueble = ?";
+    $checkStmt = $pdo->prepare($checkSql);
+    $checkStmt->execute([$propertyId]);
+    $currentProperty = $checkStmt->fetch();
+
+    if (!$currentProperty) {
+        $response['error'] = 'Propiedad no encontrada';
+        error_log("Error: Property not found - ID: {$propertyId}");
+        return;
+    }
+
+    // Check if status is actually changing
+    if ($currentProperty['estado'] === $newStatus) {
+        $response['success'] = true;
+        $response['data'] = [
+            'id' => $propertyId,
+            'status' => $newStatus,
+            'message' => 'El estado ya está configurado como ' . $newStatus
+        ];
+        error_log("Info: Status unchanged - Property {$propertyId} already has status {$newStatus}");
+        return;
+    }
+
     // Update property status
     $updateSql = "UPDATE inmueble SET estado = ?, updated_at = CURRENT_TIMESTAMP WHERE id_inmueble = ?";
     $updateStmt = $pdo->prepare($updateSql);
     $result = $updateStmt->execute([$newStatus, $propertyId]);
 
-    if ($result && $updateStmt->rowCount() > 0) {
+    if ($result) {
         $response['success'] = true;
         $response['data'] = [
             'id' => $propertyId,
@@ -190,11 +214,11 @@ function handleUpdateStatus($pdo, &$response) {
             'message' => 'Estado actualizado correctamente'
         ];
 
-        error_log("Success: Property {$propertyId} status updated to {$newStatus}");
-        logMessage("Property {$propertyId} status updated to {$newStatus}", 'INFO');
+        error_log("Success: Property {$propertyId} status updated from {$currentProperty['estado']} to {$newStatus}");
+        logMessage("Property {$propertyId} status updated from {$currentProperty['estado']} to {$newStatus}", 'INFO');
     } else {
         $response['error'] = 'No se pudo actualizar el estado';
-        error_log("Error: Update failed - Rows affected: " . $updateStmt->rowCount());
+        error_log("Error: Update failed - Database error");
     }
 }
 
