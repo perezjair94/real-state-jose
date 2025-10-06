@@ -234,18 +234,30 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
 
         <div class="photo-gallery">
             <?php foreach ($photos as $index => $photo): ?>
+                <?php
+                // Determine the correct path for the image
+                // Check if it's a custom uploaded photo or a default image
+                if (strpos($photo, 'img/') === 0 || strpos($photo, 'casa') !== false) {
+                    // Default image from img/ folder
+                    $photoSrc = (strpos($photo, 'img/') === 0) ? $photo : 'img/' . $photo;
+                } else {
+                    // Custom uploaded photo
+                    $photoSrc = 'assets/uploads/properties/' . $photo;
+                }
+                ?>
                 <div class="photo-item" data-photo-index="<?= $index ?>">
                     <img
-                        src="<?= UPLOADS_URL ?>properties/<?= htmlspecialchars($photo) ?>"
+                        src="<?= htmlspecialchars($photoSrc) ?>"
                         alt="Foto de la propiedad <?= $index + 1 ?>"
                         onclick="openPhotoModal(<?= $index ?>)"
                         loading="lazy"
+                        onerror="this.src='img/casa1.jpeg'"
                     >
                     <div class="photo-overlay">
                         <span class="photo-number"><?= $index + 1 ?></span>
                         <button type="button"
                                 class="photo-action"
-                                onclick="downloadPhoto('<?= htmlspecialchars($photo) ?>')"
+                                onclick="downloadPhoto('<?= htmlspecialchars($photoSrc) ?>')"
                                 title="Descargar foto">
                             📥
                         </button>
@@ -499,12 +511,21 @@ function openPhotoModal(index) {
     const photos = <?= json_encode($photos) ?>;
     if (!photos[index]) return;
 
+    // Helper function to get the correct photo path
+    function getPhotoPath(photo) {
+        if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
+            return photo.indexOf('img/') === 0 ? photo : 'img/' + photo;
+        } else {
+            return 'assets/uploads/properties/' + photo;
+        }
+    }
+
     const modal = document.createElement('div');
     modal.className = 'photo-modal';
     modal.innerHTML = `
         <div class="photo-modal-content">
             <button class="photo-modal-close" onclick="this.closest('.photo-modal').remove()">&times;</button>
-            <img src="${'<?= UPLOADS_URL ?>properties/' + photos[index]}" alt="Foto de la propiedad">
+            <img src="${getPhotoPath(photos[index])}" alt="Foto de la propiedad" onerror="this.src='img/casa1.jpeg'">
             <div class="photo-modal-nav">
                 <button onclick="changePhoto(-1)" ${index === 0 ? 'disabled' : ''}>‹ Anterior</button>
                 <span>${index + 1} de ${photos.length}</span>
@@ -531,6 +552,15 @@ function changePhoto(direction) {
     const photos = <?= json_encode($photos) ?>;
     const newIndex = modal.currentIndex + direction;
 
+    // Helper function to get the correct photo path
+    function getPhotoPath(photo) {
+        if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
+            return photo.indexOf('img/') === 0 ? photo : 'img/' + photo;
+        } else {
+            return 'assets/uploads/properties/' + photo;
+        }
+    }
+
     if (newIndex >= 0 && newIndex < photos.length) {
         modal.currentIndex = newIndex;
         const img = modal.querySelector('img');
@@ -538,7 +568,7 @@ function changePhoto(direction) {
         const prevBtn = modal.querySelector('.photo-modal-nav button:first-of-type');
         const nextBtn = modal.querySelector('.photo-modal-nav button:last-of-type');
 
-        img.src = '<?= UPLOADS_URL ?>properties/' + photos[newIndex];
+        img.src = getPhotoPath(photos[newIndex]);
         nav.textContent = `${newIndex + 1} de ${photos.length}`;
 
         prevBtn.disabled = newIndex === 0;
@@ -548,8 +578,8 @@ function changePhoto(direction) {
 
 function downloadPhoto(filename) {
     const link = document.createElement('a');
-    link.href = '<?= UPLOADS_URL ?>properties/' + filename;
-    link.download = filename;
+    link.href = filename; // filename is already the full path
+    link.download = filename.split('/').pop();
     link.click();
 }
 
