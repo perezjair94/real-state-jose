@@ -160,14 +160,20 @@ function handleUpdateStatus($pdo, &$response) {
     $propertyId = (int)($_POST['id'] ?? 0);
     $newStatus = sanitizeInput($_POST['status'] ?? '');
 
+    // Debug logging
+    error_log("Update Status Request - ID: {$propertyId}, Status: {$newStatus}");
+    error_log("POST data: " . print_r($_POST, true));
+
     if ($propertyId <= 0) {
         $response['error'] = 'ID de propiedad inválido';
+        error_log("Error: Invalid property ID - {$propertyId}");
         return;
     }
 
     $validStatuses = array_keys(PROPERTY_STATUS);
     if (!in_array($newStatus, $validStatuses)) {
-        $response['error'] = 'Estado inválido';
+        $response['error'] = 'Estado inválido: ' . $newStatus;
+        error_log("Error: Invalid status - {$newStatus}. Valid: " . implode(', ', $validStatuses));
         return;
     }
 
@@ -184,9 +190,11 @@ function handleUpdateStatus($pdo, &$response) {
             'message' => 'Estado actualizado correctamente'
         ];
 
+        error_log("Success: Property {$propertyId} status updated to {$newStatus}");
         logMessage("Property {$propertyId} status updated to {$newStatus}", 'INFO');
     } else {
         $response['error'] = 'No se pudo actualizar el estado';
+        error_log("Error: Update failed - Rows affected: " . $updateStmt->rowCount());
     }
 }
 

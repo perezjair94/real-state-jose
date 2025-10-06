@@ -623,14 +623,18 @@ async function confirmStatusChange(propertyId) {
     }
 
     try {
+        console.log('Actualizando estado de propiedad:', propertyId, 'a:', newStatus);
         const response = await Ajax.properties.updateStatus(propertyId, newStatus);
+        console.log('Respuesta del servidor:', response);
+
         if (response.success) {
             App.showSuccessMessage('Estado actualizado correctamente');
             window.location.reload();
         } else {
-            throw new Error(response.error);
+            throw new Error(response.error || 'Error desconocido');
         }
     } catch (error) {
+        console.error('Error al actualizar estado:', error);
         App.showErrorMessage('Error al actualizar el estado: ' + error.message);
     } finally {
         App.closeModal();
