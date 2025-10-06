@@ -393,6 +393,8 @@ try {
             (<?= $totalRecords ?> registros en total)
         </div>
     <?php endif; ?>
+</div>
+<!-- End Table View -->
 
 <?php else: ?>
     <!-- No Results -->
