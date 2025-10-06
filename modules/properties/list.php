@@ -213,11 +213,74 @@ try {
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<!-- Properties Table -->
-<?php if (!empty($properties)): ?>
-    <div class="card">
-        <div class="table-container">
-            <table class="table">
+<!-- View Toggle -->
+<div class="view-toggle" style="margin-bottom: 20px; text-align: right;">
+    <button onclick="toggleView('cards')" id="view-cards-btn" class="btn btn-small btn-secondary">
+        <i class="fas fa-th"></i> Tarjetas
+    </button>
+    <button onclick="toggleView('table')" id="view-table-btn" class="btn btn-small">
+        <i class="fas fa-list"></i> Tabla
+    </button>
+</div>
+
+<!-- Properties Cards View (New Modern Design) -->
+<div id="cards-view" class="card" style="display: none;">
+    <h3>Propiedades Disponibles</h3>
+    <div class="property-list">
+        <?php foreach ($properties as $property): ?>
+            <div class="property-card">
+                <div class="image-container">
+                    <?php
+                    // Get property image from JSON or use default
+                    $fotos = json_decode($property['fotos'] ?? '[]', true);
+                    $imageSrc = !empty($fotos) && isset($fotos[0]) ? 'uploads/properties/' . $fotos[0] : 'img/casa1.jpeg';
+                    ?>
+                    <img src="<?= htmlspecialchars($imageSrc) ?>" alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>">
+                    <span class="tag <?= $property['estado'] === 'Vendido' ? 'tag-compra' : 'tag-renta' ?>">
+                        <?= htmlspecialchars(strtoupper($property['estado'])) ?>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h3 class="title"><?= htmlspecialchars($property['ciudad']) ?></h3>
+                    <p class="location"><?= htmlspecialchars($property['direccion']) ?></p>
+                    <p class="price"><?= formatCurrency($property['precio']) ?></p>
+                    <hr>
+                    <div class="details">
+                        <div class="detail-item">
+                            <i class="fa-solid fa-bed"></i>
+                            <p>Habitaciones</p>
+                            <span><?= $property['habitaciones'] ?: '0' ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fa-solid fa-bath"></i>
+                            <p>Baños</p>
+                            <span><?= $property['banos'] ?: '0' ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                            <p>M²</p>
+                            <span><?= $property['area_construida'] ? number_format($property['area_construida'], 0) : 'N/A' ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fa-solid fa-home"></i>
+                            <p>Tipo</p>
+                            <span><?= htmlspecialchars(substr($property['tipo_inmueble'], 0, 4)) ?></span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <a href="?module=properties&action=view&id=<?= $property['id_inmueble'] ?>" class="btn btn-small">Ver Detalles</a>
+                        <a href="?module=properties&action=edit&id=<?= $property['id_inmueble'] ?>" class="btn btn-small btn-secondary">Editar</a>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- Properties Table (Original View) -->
+<div id="table-view" class="card">
+    <div class="table-container">
+        <table class="table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -346,6 +409,40 @@ try {
         </div>
     </div>
 <?php endif; ?>
+
+<!-- JavaScript for view toggle -->
+<script>
+function toggleView(view) {
+    const cardsView = document.getElementById('cards-view');
+    const tableView = document.getElementById('table-view');
+    const cardsBtn = document.getElementById('view-cards-btn');
+    const tableBtn = document.getElementById('view-table-btn');
+
+    if (view === 'cards') {
+        cardsView.style.display = 'block';
+        tableView.style.display = 'none';
+        cardsBtn.classList.remove('btn-secondary');
+        cardsBtn.classList.add('btn');
+        tableBtn.classList.remove('btn');
+        tableBtn.classList.add('btn-secondary');
+        localStorage.setItem('propertyView', 'cards');
+    } else {
+        cardsView.style.display = 'none';
+        tableView.style.display = 'block';
+        tableBtn.classList.remove('btn-secondary');
+        tableBtn.classList.add('btn');
+        cardsBtn.classList.remove('btn');
+        cardsBtn.classList.add('btn-secondary');
+        localStorage.setItem('propertyView', 'table');
+    }
+}
+
+// Load saved view preference
+document.addEventListener('DOMContentLoaded', function() {
+    const savedView = localStorage.getItem('propertyView') || 'table';
+    toggleView(savedView);
+});
+</script>
 
 <!-- Educational JavaScript Section -->
 <script>

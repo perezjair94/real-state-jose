@@ -24,6 +24,9 @@ $currentAction = $_GET['action'] ?? 'list';
 
     <title><?= APP_NAME ?> - <?= AVAILABLE_MODULES[$currentModule] ?? 'Sistema' ?></title>
 
+    <!-- Google Fonts - Oswald -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
 
@@ -39,68 +42,36 @@ $currentAction = $_GET['action'] ?? 'list';
     <!-- Educational comment: Meta tags improve SEO and security -->
 </head>
 <body>
-    <div class="container">
-        <!-- Header Section -->
-        <header class="header">
-            <div class="header-content">
-                <h1><?= APP_NAME ?></h1>
-                <p class="header-subtitle"><?= APP_DESCRIPTION ?></p>
-                <?php if (ENVIRONMENT === 'development' && SHOW_DEBUG_INFO): ?>
-                    <small class="debug-info">
-                        Versión <?= APP_VERSION ?> | Módulo: <?= $currentModule ?> | Acción: <?= $currentAction ?>
-                    </small>
-                <?php endif; ?>
-            </div>
-        </header>
+    <!-- Modern Navbar -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="https://images.icon-icons.com/1512/PNG/512/31_104880.png" alt="logo">
+            <h1>Inmuebles<span>del sinú</span></h1>
+        </div>
 
-        <!-- Navigation Section -->
-        <nav class="nav">
+        <nav class="menu">
             <?php foreach (AVAILABLE_MODULES as $moduleKey => $moduleName): ?>
-                <button
-                    type="button"
-                    class="nav-button <?= $currentModule === $moduleKey ? 'active' : '' ?>"
-                    onclick="location.href='?module=<?= $moduleKey ?>'"
+                <a
+                    href="?module=<?= $moduleKey ?>"
+                    class="<?= $currentModule === $moduleKey ? 'active' : '' ?>"
                     aria-label="Ir a <?= $moduleName ?>"
                 >
                     <?= $moduleName ?>
-                </button>
+                </a>
             <?php endforeach; ?>
-
-            <!-- Quick Actions (if needed) -->
-            <div class="nav-actions">
-                <?php if (ENVIRONMENT === 'development'): ?>
-                    <button
-                        type="button"
-                        class="nav-button nav-button-secondary"
-                        onclick="location.href='?module=<?= $currentModule ?>&action=create'"
-                        title="Crear nuevo registro"
-                    >
-                        + Nuevo
-                    </button>
-                <?php endif; ?>
-            </div>
         </nav>
+    </header>
 
+    <div class="container">
         <!-- Flash Messages -->
+        <?php if (ENVIRONMENT === 'development' && SHOW_DEBUG_INFO): ?>
+            <div class="debug-info-bar">
+                Versión <?= APP_VERSION ?> | Módulo: <?= $currentModule ?> | Acción: <?= $currentAction ?>
+            </div>
+        <?php endif; ?>
+
         <div class="messages">
             <?= displayFlashMessage() ?>
-        </div>
-
-        <!-- Breadcrumb Navigation -->
-        <div class="breadcrumb">
-            <span class="breadcrumb-item">
-                <a href="?module=<?= DEFAULT_MODULE ?>">Inicio</a>
-            </span>
-            <span class="breadcrumb-separator">›</span>
-            <span class="breadcrumb-item current">
-                <?= AVAILABLE_MODULES[$currentModule] ?? 'Módulo' ?>
-            </span>
-            <?php if ($currentAction !== 'list'): ?>
-                <span class="breadcrumb-separator">›</span>
-                <span class="breadcrumb-item current">
-                    <?= MODULE_ACTIONS[$currentAction] ?? 'Acción' ?>
-                </span>
-            <?php endif; ?>
         </div>
 
         <!-- Main Content Area Starts Here -->
