@@ -61,6 +61,9 @@ if (!defined('APP_ACCESS')) {
         </footer>
     </div>
 
+    <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a2d9d6f7b4.js" crossorigin="anonymous"></script>
+
     <!-- JavaScript Files -->
     <script src="assets/js/app.js"></script>
     <script src="assets/js/validation.js"></script>

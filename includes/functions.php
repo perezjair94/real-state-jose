@@ -336,13 +336,22 @@ function displayFlashMessage() {
 }
 
 /**
- * Format currency amount
+ * Format currency amount (Colombian format)
+ * Example: $ 1.500.000 (punto para miles, sin decimales)
  *
  * @param float $amount Amount to format
+ * @param bool $showCode Show currency code (COP)
  * @return string Formatted currency
  */
-function formatCurrency($amount) {
-    return CURRENCY_SYMBOL . number_format($amount, CURRENCY_DECIMALS, ',', '.');
+function formatCurrency($amount, $showCode = false) {
+    // Colombian format: $ sign, dot for thousands, no decimals
+    $formatted = CURRENCY_SYMBOL . ' ' . number_format($amount, CURRENCY_DECIMALS, ',', '.');
+
+    if ($showCode) {
+        $formatted .= ' ' . CURRENCY_CODE;
+    }
+
+    return $formatted;
 }
 
 /**
