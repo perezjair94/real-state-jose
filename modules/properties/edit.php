@@ -309,12 +309,7 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
         <div class="form-group">
             <label for="ciudad" class="required">Ciudad:</label>
             <select name="ciudad" id="ciudad" required data-validation="required">
-                <option value="">Seleccione la ciudad...</option>
-                <?php foreach (CITIES as $key => $label): ?>
-                    <option value="<?= $key ?>" <?= ($formData['ciudad'] ?? '') === $key ? 'selected' : '' ?>>
-                        <?= $label ?>
-                    </option>
-                <?php endforeach; ?>
+                <option value="Montería" selected>Montería</option>
             </select>
             <?php if (!empty($errors['ciudad'])): ?>
                 <div class="error-message"><?= htmlspecialchars($errors['ciudad']) ?></div>
