@@ -78,11 +78,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'estado' => $formData['estado']
             ];
 
-            // Handle photo uploads (additional photos)
+            // Handle photo uploads (additional photos) with enhanced error logging
             $currentPhotos = !empty($property['fotos']) ? json_decode($property['fotos'], true) : [];
             $newPhotos = [];
+            $uploadErrors = [];
 
             if (isset($_FILES['fotos']) && !empty($_FILES['fotos']['name'][0])) {
+                // Verify upload directory exists and is writable
+                if (!is_dir(UPLOAD_PATH_PROPERTIES)) {
+                    mkdir(UPLOAD_PATH_PROPERTIES, 0777, true);
+                }
+
+                if (!is_writable(UPLOAD_PATH_PROPERTIES)) {
+                    $uploadErrors[] = "El directorio de uploads no tiene permisos de escritura";
+                    error_log("Upload directory not writable: " . UPLOAD_PATH_PROPERTIES);
+                }
+
                 foreach ($_FILES['fotos']['name'] as $index => $filename) {
                     if (!empty($filename)) {
                         $file = [
@@ -100,7 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                                 $newPhotos[] = $newFilename;
+                                error_log("File uploaded successfully (edit): " . $uploadPath);
+                            } else {
+                                $uploadErrors[] = "Error al subir archivo: " . $filename;
+                                error_log("Failed to move uploaded file (edit): " . $filename . " to " . $uploadPath);
                             }
+                        } else {
+                            $uploadErrors[] = $validation['error'] . " (" . $filename . ")";
+                            error_log("File validation failed (edit): " . $filename . " - " . $validation['error']);
                         }
                     }
                 }
@@ -110,6 +128,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $allPhotos = array_merge($currentPhotos, $newPhotos);
             if (!empty($allPhotos)) {
                 $updateData['fotos'] = json_encode($allPhotos);
+            } else {
+                $updateData['fotos'] = null;
+            }
+
+            // Log upload results for debugging
+            if (!empty($uploadErrors)) {
+                error_log("Upload errors (edit): " . implode(", ", $uploadErrors));
+            }
+            if (!empty($newPhotos)) {
+                error_log("Successfully uploaded new photos (edit): " . json_encode($newPhotos));
             }
 
             // Update in database

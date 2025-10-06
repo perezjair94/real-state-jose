@@ -237,10 +237,12 @@ try {
                     <?php
                     // Get property image from JSON or use default based on property type
                     $fotos = json_decode($property['fotos'] ?? '[]', true);
+                    $hasCustomPhoto = false;
 
                     if (!empty($fotos) && isset($fotos[0])) {
                         // Use uploaded photo
-                        $imageSrc = 'assets/uploads/properties/' . $fotos[0];
+                        $imageSrc = 'assets/uploads/properties/' . htmlspecialchars($fotos[0]);
+                        $hasCustomPhoto = true;
                     } else {
                         // Use default image based on property type or rotation
                         $defaultImages = ['img/casa1.jpeg', 'img/casa2.jpg', 'img/casa3.jpeg'];
@@ -248,7 +250,14 @@ try {
                         $imageSrc = $defaultImages[$imageIndex];
                     }
                     ?>
-                    <img src="<?= htmlspecialchars($imageSrc) ?>" alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>">
+                    <img src="<?= $imageSrc ?>"
+                         alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
+                         onerror="this.src='img/casa1.jpeg'">
+                    <?php if ($hasCustomPhoto && count($fotos) > 1): ?>
+                        <span class="photo-count">
+                            <i class="fa fa-camera"></i> <?= count($fotos) ?>
+                        </span>
+                    <?php endif; ?>
                     <span class="tag <?= $property['estado'] === 'Vendido' ? 'tag-compra' : 'tag-renta' ?>">
                         <?= htmlspecialchars(strtoupper($property['estado'])) ?>
                     </span>
@@ -543,6 +552,20 @@ document.addEventListener('DOMContentLoaded', function() {
 .module-header {
     margin-bottom: var(--spacing-lg);
     text-align: center;
+}
+
+.photo-count {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .module-description {

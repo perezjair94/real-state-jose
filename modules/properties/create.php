@@ -54,9 +54,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'estado' => 'Disponible'
             ];
 
-            // Handle photo uploads (basic implementation)
+            // Handle photo uploads with enhanced error logging
             $photos = [];
+            $uploadErrors = [];
+
             if (isset($_FILES['fotos']) && !empty($_FILES['fotos']['name'][0])) {
+                // Verify upload directory exists and is writable
+                if (!is_dir(UPLOAD_PATH_PROPERTIES)) {
+                    mkdir(UPLOAD_PATH_PROPERTIES, 0777, true);
+                }
+
+                if (!is_writable(UPLOAD_PATH_PROPERTIES)) {
+                    $uploadErrors[] = "El directorio de uploads no tiene permisos de escritura";
+                    error_log("Upload directory not writable: " . UPLOAD_PATH_PROPERTIES);
+                }
+
                 foreach ($_FILES['fotos']['name'] as $index => $filename) {
                     if (!empty($filename)) {
                         $file = [
@@ -74,14 +86,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                                 $photos[] = $newFilename;
+                                error_log("File uploaded successfully: " . $uploadPath);
+                            } else {
+                                $uploadErrors[] = "Error al subir archivo: " . $filename;
+                                error_log("Failed to move uploaded file: " . $filename . " to " . $uploadPath);
                             }
+                        } else {
+                            $uploadErrors[] = $validation['error'] . " (" . $filename . ")";
+                            error_log("File validation failed for: " . $filename . " - " . $validation['error']);
                         }
                     }
                 }
             }
 
+            // Always set fotos field, even if empty (as NULL or empty JSON array)
+            $insertData['fotos'] = !empty($photos) ? json_encode($photos) : null;
+
+            // Log upload results for debugging
+            if (!empty($uploadErrors)) {
+                error_log("Upload errors: " . implode(", ", $uploadErrors));
+            }
             if (!empty($photos)) {
-                $insertData['fotos'] = json_encode($photos);
+                error_log("Successfully uploaded photos: " . json_encode($photos));
             }
 
             // Insert into database
