@@ -221,7 +221,7 @@ try {
             <i class="fas fa-th-large"></i>
             <span>Vista Tarjetas</span>
         </button>
-        <button onclick="toggleView('table')" id="view-table-btn" class="btn">
+        <button onclick="toggleView('table')" id="view-table-btn" class="btn btn-secondary">
             <i class="fas fa-table"></i>
             <span>Vista Tabla</span>
         </button>
@@ -425,20 +425,28 @@ function toggleView(view) {
     const tableBtn = document.getElementById('view-table-btn');
 
     if (view === 'cards') {
+        // Show cards view, hide table view
         cardsView.style.display = 'block';
         tableView.style.display = 'none';
+
+        // Cards button active (remove btn-secondary)
         cardsBtn.classList.remove('btn-secondary');
-        cardsBtn.classList.add('btn');
-        tableBtn.classList.remove('btn');
+
+        // Table button inactive (add btn-secondary)
         tableBtn.classList.add('btn-secondary');
+
         localStorage.setItem('propertyView', 'cards');
     } else {
+        // Show table view, hide cards view
         cardsView.style.display = 'none';
         tableView.style.display = 'block';
+
+        // Table button active (remove btn-secondary)
         tableBtn.classList.remove('btn-secondary');
-        tableBtn.classList.add('btn');
-        cardsBtn.classList.remove('btn');
+
+        // Cards button inactive (add btn-secondary)
         cardsBtn.classList.add('btn-secondary');
+
         localStorage.setItem('propertyView', 'table');
     }
 }
