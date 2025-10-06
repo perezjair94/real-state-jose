@@ -216,12 +216,14 @@ try {
 <!-- Properties Display -->
 <?php if (!empty($properties)): ?>
     <!-- View Toggle -->
-    <div class="view-toggle" style="margin-bottom: 20px; text-align: right;">
-        <button onclick="toggleView('cards')" id="view-cards-btn" class="btn btn-small btn-secondary">
-            <i class="fas fa-th"></i> Tarjetas
+    <div class="view-toggle">
+        <button onclick="toggleView('cards')" id="view-cards-btn" class="btn btn-secondary">
+            <i class="fas fa-th-large"></i>
+            <span>Vista Tarjetas</span>
         </button>
-        <button onclick="toggleView('table')" id="view-table-btn" class="btn btn-small">
-            <i class="fas fa-list"></i> Tabla
+        <button onclick="toggleView('table')" id="view-table-btn" class="btn">
+            <i class="fas fa-table"></i>
+            <span>Vista Tabla</span>
         </button>
     </div>
 
