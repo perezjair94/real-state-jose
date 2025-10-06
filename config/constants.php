@@ -62,6 +62,52 @@ define('AVAILABLE_MODULES', [
     'visits' => 'Visitas'
 ]);
 
+// Menu Structure with Submenus
+define('MENU_STRUCTURE', [
+    [
+        'key' => 'properties',
+        'label' => 'Inmuebles',
+        'icon' => '🏠',
+        'submenu' => [
+            [
+                'key' => 'properties',
+                'label' => 'Gestión de Inmuebles',
+                'icon' => '📋'
+            ],
+            [
+                'key' => 'sales',
+                'label' => 'Ventas',
+                'icon' => '💰'
+            ],
+            [
+                'key' => 'rentals',
+                'label' => 'Arriendos',
+                'icon' => '🔑'
+            ]
+        ]
+    ],
+    [
+        'key' => 'clients',
+        'label' => 'Clientes',
+        'icon' => '👥'
+    ],
+    [
+        'key' => 'agents',
+        'label' => 'Agentes',
+        'icon' => '👔'
+    ],
+    [
+        'key' => 'contracts',
+        'label' => 'Contratos',
+        'icon' => '📄'
+    ],
+    [
+        'key' => 'visits',
+        'label' => 'Visitas',
+        'icon' => '📅'
+    ]
+]);
+
 // Default Module
 define('DEFAULT_MODULE', 'properties');
 

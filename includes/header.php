@@ -50,14 +50,36 @@ $currentAction = $_GET['action'] ?? 'list';
         </div>
 
         <nav class="menu">
-            <?php foreach (AVAILABLE_MODULES as $moduleKey => $moduleName): ?>
-                <a
-                    href="?module=<?= $moduleKey ?>"
-                    class="<?= $currentModule === $moduleKey ? 'active' : '' ?>"
-                    aria-label="Ir a <?= $moduleName ?>"
-                >
-                    <?= $moduleName ?>
-                </a>
+            <?php foreach (MENU_STRUCTURE as $menuItem): ?>
+                <?php if (isset($menuItem['submenu'])): ?>
+                    <!-- Menu item with submenu -->
+                    <div class="menu-item-container <?= ($currentModule === $menuItem['key'] || in_array($currentModule, array_column($menuItem['submenu'], 'key'))) ? 'active' : '' ?>">
+                        <a href="?module=<?= $menuItem['key'] ?>" class="menu-item-parent">
+                            <?= $menuItem['icon'] ?? '' ?> <?= $menuItem['label'] ?>
+                            <span class="submenu-arrow">▼</span>
+                        </a>
+                        <div class="submenu">
+                            <?php foreach ($menuItem['submenu'] as $subItem): ?>
+                                <a
+                                    href="?module=<?= $subItem['key'] ?>"
+                                    class="submenu-item <?= $currentModule === $subItem['key'] ? 'active' : '' ?>"
+                                    aria-label="Ir a <?= $subItem['label'] ?>"
+                                >
+                                    <?= $subItem['icon'] ?? '' ?> <?= $subItem['label'] ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <!-- Simple menu item without submenu -->
+                    <a
+                        href="?module=<?= $menuItem['key'] ?>"
+                        class="<?= $currentModule === $menuItem['key'] ? 'active' : '' ?>"
+                        aria-label="Ir a <?= $menuItem['label'] ?>"
+                    >
+                        <?= $menuItem['icon'] ?? '' ?> <?= $menuItem['label'] ?>
+                    </a>
+                <?php endif; ?>
             <?php endforeach; ?>
         </nav>
     </header>
