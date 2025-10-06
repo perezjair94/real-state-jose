@@ -213,21 +213,23 @@ try {
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<!-- View Toggle -->
-<div class="view-toggle" style="margin-bottom: 20px; text-align: right;">
-    <button onclick="toggleView('cards')" id="view-cards-btn" class="btn btn-small btn-secondary">
-        <i class="fas fa-th"></i> Tarjetas
-    </button>
-    <button onclick="toggleView('table')" id="view-table-btn" class="btn btn-small">
-        <i class="fas fa-list"></i> Tabla
-    </button>
-</div>
+<!-- Properties Display -->
+<?php if (!empty($properties)): ?>
+    <!-- View Toggle -->
+    <div class="view-toggle" style="margin-bottom: 20px; text-align: right;">
+        <button onclick="toggleView('cards')" id="view-cards-btn" class="btn btn-small btn-secondary">
+            <i class="fas fa-th"></i> Tarjetas
+        </button>
+        <button onclick="toggleView('table')" id="view-table-btn" class="btn btn-small">
+            <i class="fas fa-list"></i> Tabla
+        </button>
+    </div>
 
-<!-- Properties Cards View (New Modern Design) -->
-<div id="cards-view" class="card" style="display: none;">
-    <h3>Propiedades Disponibles</h3>
-    <div class="property-list">
-        <?php foreach ($properties as $property): ?>
+    <!-- Properties Cards View (New Modern Design) -->
+    <div id="cards-view" class="card" style="display: none;">
+        <h3>Propiedades Disponibles</h3>
+        <div class="property-list">
+            <?php foreach ($properties as $property): ?>
             <div class="property-card">
                 <div class="image-container">
                     <?php
@@ -273,14 +275,14 @@ try {
                     </div>
                 </div>
             </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
-</div>
 
-<!-- Properties Table (Original View) -->
-<div id="table-view" class="card">
-    <div class="table-container">
-        <table class="table">
+    <!-- Properties Table (Original View) -->
+    <div id="table-view" class="card">
+        <div class="table-container">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -393,8 +395,8 @@ try {
             (<?= $totalRecords ?> registros en total)
         </div>
     <?php endif; ?>
-</div>
-<!-- End Table View -->
+    </div>
+    <!-- End Table View -->
 
 <?php else: ?>
     <!-- No Results -->
