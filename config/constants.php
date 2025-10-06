@@ -117,7 +117,8 @@ define('MODULE_ACTIONS', [
     'create' => 'Crear',
     'edit' => 'Editar',
     'view' => 'Ver',
-    'delete' => 'Eliminar'
+    'delete' => 'Eliminar',
+    'ajax' => 'AJAX'
 ]);
 
 // Property Types

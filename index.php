@@ -42,16 +42,8 @@ if (ENVIRONMENT === 'development' && LOG_ENABLED) {
 }
 
 // Handle AJAX requests separately
-if (isset($_POST['ajax']) && $_POST['ajax'] === 'true') {
+if ($action === 'ajax' || (isset($_POST['ajax']) && $_POST['ajax'] === 'true')) {
     header('Content-Type: application/json');
-
-    // Verify CSRF token for AJAX requests
-    $csrfToken = $_POST['csrf_token'] ?? '';
-    if (!verifyCSRFToken($csrfToken)) {
-        http_response_code(403);
-        echo json_encode(['error' => 'Invalid CSRF token']);
-        exit;
-    }
 
     // Route to appropriate AJAX handler
     $ajaxFile = "modules/{$module}/ajax.php";

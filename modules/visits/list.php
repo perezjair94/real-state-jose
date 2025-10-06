@@ -258,7 +258,7 @@ try {
                                     Editar
                                 </a>
                                 <button type="button" class="btn btn-sm btn-danger"
-                                        onclick="alert('Cancelar visita en desarrollo')" title="Cancelar">
+                                        onclick="cancelVisit(<?= $visit['id_visita'] ?>)" title="Cancelar">
                                     Cancelar
                                 </button>
                             <?php endif; ?>
@@ -439,3 +439,63 @@ try {
     color: #721c24;
 }
 </style>
+
+<script>
+/**
+ * Cancel a scheduled visit
+ */
+function cancelVisit(visitId) {
+    if (!visitId || visitId <= 0) {
+        alert('ID de visita inválido');
+        return;
+    }
+
+    // Ask for confirmation
+    if (!confirm('¿Está seguro de que desea cancelar esta visita?\n\nEsta acción cambiará el estado de la visita a "Cancelada".')) {
+        return;
+    }
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'updateStatus');
+    formData.append('id', visitId);
+    formData.append('estado', 'Cancelada');
+
+    // Show loading state (optional - disable button)
+    const buttons = document.querySelectorAll(`button[onclick*="cancelVisit(${visitId})"]`);
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.textContent = 'Cancelando...';
+    });
+
+    // Send AJAX request
+    fetch('?module=visits&action=ajax', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Visita cancelada exitosamente');
+            // Reload page to show updated status
+            window.location.reload();
+        } else {
+            alert('Error al cancelar la visita: ' + (data.message || 'Error desconocido'));
+            // Re-enable buttons on error
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.textContent = 'Cancelar';
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión al cancelar la visita');
+        // Re-enable buttons on error
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.textContent = 'Cancelar';
+        });
+    });
+}
+</script>
