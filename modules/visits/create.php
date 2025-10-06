@@ -15,26 +15,43 @@ $errors = [];
 $formData = [];
 $success = false;
 
-// Sample data for dropdowns (in real app, would come from database)
-$properties = [
-    'INM001' => 'Casa - Calle 123 #45-67, Medellín',
-    'INM003' => 'Apartamento - Carrera 70 #25-30, Medellín',
-    'INM005' => 'Local - Avenida 50 #20-15, Medellín',
-    'INM007' => 'Apartamento - Carrera 80 #30-45, Medellín'
-];
+// Get real data from database
+$properties = [];
+$clients = [];
+$agents = [];
 
-$clients = [
-    'CLI001' => 'Juan Pérez - CC 12345678',
-    'CLI002' => 'Ana López - CC 87654321',
-    'CLI003' => 'Carlos Mendoza - CC 11223344',
-    'CLI004' => 'Roberto Silva - CC 55667788'
-];
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
 
-$agents = [
-    'AGE001' => 'María García',
-    'AGE002' => 'Luis Fernando Pérez',
-    'AGE003' => 'Carlos López'
-];
+    // Get available properties
+    $stmt = $pdo->prepare("SELECT id_inmueble, tipo_inmueble, direccion, ciudad FROM inmueble WHERE estado IN ('Disponible', 'Reservado') ORDER BY tipo_inmueble, direccion");
+    $stmt->execute();
+    $propertiesData = $stmt->fetchAll();
+    foreach ($propertiesData as $property) {
+        $properties[$property['id_inmueble']] = $property['tipo_inmueble'] . ' - ' . $property['direccion'] . ', ' . $property['ciudad'];
+    }
+
+    // Get clients
+    $stmt = $pdo->prepare("SELECT id_cliente, nombre, apellido, tipo_documento, nro_documento FROM cliente ORDER BY nombre, apellido");
+    $stmt->execute();
+    $clientsData = $stmt->fetchAll();
+    foreach ($clientsData as $client) {
+        $clients[$client['id_cliente']] = $client['nombre'] . ' ' . $client['apellido'] . ' - ' . $client['tipo_documento'] . ' ' . $client['nro_documento'];
+    }
+
+    // Get active agents
+    $stmt = $pdo->prepare("SELECT id_agente, nombre FROM agente WHERE activo = 1 ORDER BY nombre");
+    $stmt->execute();
+    $agentsData = $stmt->fetchAll();
+    foreach ($agentsData as $agent) {
+        $agents[$agent['id_agente']] = $agent['nombre'];
+    }
+
+} catch (PDOException $e) {
+    error_log("Error loading form data: " . $e->getMessage());
+    $errors['database'] = "Error al cargar los datos del formulario. Intente nuevamente.";
+}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -76,9 +93,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // For now, simulate success since database integration is pending
-        $success = true;
-        $visitId = rand(100, 999); // Simulate generated ID
+        // Save to database
+        try {
+            $db = new Database();
+            $pdo = $db->getConnection();
+
+            // Insert visit
+            $stmt = $pdo->prepare("
+                INSERT INTO visita (fecha_visita, hora_visita, estado, observaciones,
+                                   id_inmueble, id_cliente, id_agente)
+                VALUES (?, ?, 'Programada', ?, ?, ?, ?)
+            ");
+
+            $result = $stmt->execute([
+                $formData['fecha_visita'],
+                $formData['hora_visita'],
+                $formData['observaciones'] ?? '',
+                $formData['inmueble_id'],
+                $formData['cliente_id'],
+                $formData['agente_id']
+            ]);
+
+            if ($result) {
+                $visitId = $pdo->lastInsertId();
+                $success = true;
+            } else {
+                $errors['database'] = 'Error al guardar la visita en la base de datos';
+            }
+
+        } catch (PDOException $e) {
+            error_log("Error saving visit: " . $e->getMessage());
+            $errors['database'] = 'Error al guardar la visita. Intente nuevamente.';
+        }
     }
 }
 ?>
@@ -115,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p><strong>📝 Observaciones:</strong> <?= htmlspecialchars($formData['observaciones']) ?></p>
             <?php endif; ?>
         </div>
-        <p><strong>Nota:</strong> Esta es una simulación. En la versión completa se guardará en la base de datos y se enviarán notificaciones automáticas.</p>
         <div class="alert-actions">
             <a href="?module=visits" class="btn btn-primary">Ver Lista de Visitas</a>
             <a href="?module=visits&action=create" class="btn btn-secondary">Programar Otra Visita</a>
@@ -349,10 +394,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </div>
 <?php endif; ?>
-
-<div class="info-message">
-    <p><strong>Nota de Desarrollo:</strong> Este formulario simula la programación de visitas. En la versión completa se integrará con la base de datos y se enviarán notificaciones automáticas por email y SMS.</p>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
