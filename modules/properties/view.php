@@ -88,7 +88,7 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
 ?>
 
 <div class="module-header">
-    <h2>Detalles de la Propiedad <?= $formattedId ?></h2>
+    <h2>Detalles de la Propiedad <span class="property-id"><?= $formattedId ?></span></h2>
     <p class="module-description">
         Información completa y historial de transacciones de la propiedad.
     </p>

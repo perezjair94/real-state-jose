@@ -322,7 +322,7 @@ try {
                     <?php foreach ($properties as $property): ?>
                         <tr>
                             <td>
-                                <strong>INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
+                                <strong class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
                             </td>
                             <td>
                                 <span class="property-type"><?= htmlspecialchars($property['tipo_inmueble']) ?></span>

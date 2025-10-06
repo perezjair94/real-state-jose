@@ -154,7 +154,7 @@ if ($saleId <= 0) {
                     <label>ID Inmueble:</label>
                     <value>
                         <a href="?module=properties&action=view&id=<?= $sale['id_inmueble'] ?>">
-                            INM<?= str_pad($sale['id_inmueble'], 3, '0', STR_PAD_LEFT) ?>
+                            <span class="property-id">INM<?= str_pad($sale['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></span>
                         </a>
                     </value>
                 </div>

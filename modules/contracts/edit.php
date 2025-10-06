@@ -380,7 +380,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $contract) {
                                     data-status="<?= $property['estado'] ?>"
                                     <?= $formData['id_inmueble'] == $property['id_inmueble'] ? 'selected' : '' ?>
                                 >
-                                    INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?> -
+                                    <span class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></span> -
                                     <?= htmlspecialchars($property['tipo_inmueble']) ?> en
                                     <?= htmlspecialchars($property['ciudad']) ?> -
                                     <?= htmlspecialchars($property['direccion']) ?>

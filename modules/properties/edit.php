@@ -202,7 +202,7 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
 ?>
 
 <div class="module-header">
-    <h2>Editar Propiedad <?= $formattedId ?></h2>
+    <h2>Editar Propiedad <span class="property-id"><?= $formattedId ?></span></h2>
     <p class="module-description">
         Modifique la información de la propiedad y guarde los cambios.
     </p>
