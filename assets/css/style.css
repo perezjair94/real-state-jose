@@ -700,3 +700,112 @@ body {
     display: table;
     clear: both;
 }
+
+/* ========================================
+   FILE UPLOAD STYLES
+   ======================================== */
+.file-upload {
+    position: relative;
+    border: 2px dashed #00de55;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.file-upload:hover {
+    border-color: #00aa41;
+    background-color: #f0f8f2;
+}
+
+.file-upload.dragover {
+    border-color: #0a1931;
+    background-color: #e8f5e9;
+    transform: scale(1.02);
+}
+
+.file-upload input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-height: 120px;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+}
+
+.upload-text {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
+
+.upload-text small {
+    display: block;
+    margin-top: 5px;
+    color: #999;
+    font-size: 12px;
+}
+
+/* Photo Preview Grid */
+.photo-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.photo-preview-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.photo-preview-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.photo-preview-item img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.photo-info {
+    padding: 10px;
+    font-size: 12px;
+}
+
+.photo-name {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+}
+
+.photo-size {
+    color: #999;
+    font-size: 11px;
+}
