@@ -428,11 +428,23 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                 <label>Fotografías Actuales:</label>
                 <div class="current-photos">
                     <?php foreach ($photos as $index => $photo): ?>
+                        <?php
+                        // Determine the correct path for the image
+                        // Check if it's a custom uploaded photo or a default image
+                        if (strpos($photo, 'img/') === 0 || strpos($photo, 'casa') !== false) {
+                            // Default image from img/ folder
+                            $photoSrc = (strpos($photo, 'img/') === 0) ? $photo : 'img/' . $photo;
+                        } else {
+                            // Custom uploaded photo
+                            $photoSrc = 'assets/uploads/properties/' . $photo;
+                        }
+                        ?>
                         <div class="current-photo-item" data-photo="<?= htmlspecialchars($photo) ?>">
                             <img
-                                src="<?= UPLOADS_URL ?>properties/<?= htmlspecialchars($photo) ?>"
+                                src="<?= htmlspecialchars($photoSrc) ?>"
                                 alt="Foto <?= $index + 1 ?>"
                                 onclick="viewPhoto('<?= htmlspecialchars($photo) ?>')"
+                                onerror="this.src='img/casa1.jpeg'"
                             >
                             <button
                                 type="button"
@@ -612,12 +624,20 @@ function formatBytes(bytes) {
 }
 
 function viewPhoto(filename) {
+    // Determine the correct path for the image
+    let photoPath;
+    if (filename.indexOf('img/') === 0 || filename.indexOf('casa') !== -1) {
+        photoPath = filename.indexOf('img/') === 0 ? filename : 'img/' + filename;
+    } else {
+        photoPath = 'assets/uploads/properties/' + filename;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'photo-modal';
     modal.innerHTML = `
         <div class="photo-modal-content">
             <button class="photo-modal-close" onclick="this.closest('.photo-modal').remove()">&times;</button>
-            <img src="<?= UPLOADS_URL ?>properties/${filename}" alt="Foto de la propiedad">
+            <img src="${photoPath}" alt="Foto de la propiedad" onerror="this.src='img/casa1.jpeg'">
         </div>
     `;
 
