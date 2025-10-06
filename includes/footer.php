@@ -115,6 +115,44 @@ if (!defined('APP_ACCESS')) {
                 // Educational mode: Show helpful tooltips
                 App.enableEducationalMode();
             <?php endif; ?>
+
+            // Submenu hover functionality
+            const menuContainers = document.querySelectorAll('.menu-item-container');
+            menuContainers.forEach(container => {
+                let timeoutId;
+
+                container.addEventListener('mouseenter', function() {
+                    clearTimeout(timeoutId);
+                    const submenu = this.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.style.display = 'block';
+                    }
+                });
+
+                container.addEventListener('mouseleave', function() {
+                    const submenu = this.querySelector('.submenu');
+                    if (submenu) {
+                        timeoutId = setTimeout(() => {
+                            submenu.style.display = 'none';
+                        }, 200);
+                    }
+                });
+
+                // Keep submenu open when hovering over it
+                const submenu = container.querySelector('.submenu');
+                if (submenu) {
+                    submenu.addEventListener('mouseenter', function() {
+                        clearTimeout(timeoutId);
+                        this.style.display = 'block';
+                    });
+
+                    submenu.addEventListener('mouseleave', function() {
+                        timeoutId = setTimeout(() => {
+                            this.style.display = 'none';
+                        }, 200);
+                    });
+                }
+            });
         });
 
         // Educational comment: JavaScript initialization after DOM is ready

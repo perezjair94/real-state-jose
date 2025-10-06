@@ -82,17 +82,21 @@ body {
 /* Submenu styles */
 .menu-item-container {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .menu-item-parent {
     display: flex;
     align-items: center;
     gap: 5px;
+    padding: 8px 12px;
 }
 
 .submenu-arrow {
     font-size: 10px;
     transition: transform 0.3s ease;
+    margin-left: 4px;
 }
 
 .menu-item-container:hover .submenu-arrow {
@@ -110,11 +114,17 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     min-width: 220px;
     z-index: 1000;
-    margin-top: 8px;
+    margin-top: 4px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
 }
 
-.menu-item-container:hover .submenu {
-    display: block;
+.submenu[style*="display: block"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .submenu-item {
