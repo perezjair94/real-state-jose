@@ -492,19 +492,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Format currency input
     const priceInput = document.getElementById('precio');
     if (priceInput) {
+        // Display formatted value next to input
+        const displaySpan = document.createElement('span');
+        displaySpan.className = 'price-display';
+        displaySpan.style.cssText = 'margin-left: 10px; color: #27ae60; font-weight: 600;';
+        priceInput.parentNode.insertBefore(displaySpan, priceInput.nextSibling);
+
         priceInput.addEventListener('input', function(e) {
-            // Remove non-numeric characters except decimal point
+            // Keep only numbers
             let value = e.target.value.replace(/[^\d]/g, '');
+            e.target.value = value;
+
+            // Show formatted version
             if (value) {
-                // Format with thousands separator
-                e.target.value = parseInt(value).toLocaleString('es-CO');
+                displaySpan.textContent = '$ ' + parseInt(value).toLocaleString('es-CO');
+            } else {
+                displaySpan.textContent = '';
             }
         });
 
-        priceInput.addEventListener('focus', function(e) {
-            // Remove formatting for editing
-            e.target.value = e.target.value.replace(/[^\d]/g, '');
-        });
+        // Trigger initial display
+        if (priceInput.value) {
+            priceInput.dispatchEvent(new Event('input'));
+        }
     }
 
     // Auto-suggest cities based on input
