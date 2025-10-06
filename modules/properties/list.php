@@ -235,9 +235,18 @@ try {
             <div class="property-card">
                 <div class="image-container">
                     <?php
-                    // Get property image from JSON or use default
+                    // Get property image from JSON or use default based on property type
                     $fotos = json_decode($property['fotos'] ?? '[]', true);
-                    $imageSrc = !empty($fotos) && isset($fotos[0]) ? 'uploads/properties/' . $fotos[0] : 'img/casa1.jpeg';
+
+                    if (!empty($fotos) && isset($fotos[0])) {
+                        // Use uploaded photo
+                        $imageSrc = 'assets/uploads/properties/' . $fotos[0];
+                    } else {
+                        // Use default image based on property type or rotation
+                        $defaultImages = ['img/casa1.jpeg', 'img/casa2.jpg', 'img/casa3.jpeg'];
+                        $imageIndex = $property['id_inmueble'] % count($defaultImages);
+                        $imageSrc = $defaultImages[$imageIndex];
+                    }
                     ?>
                     <img src="<?= htmlspecialchars($imageSrc) ?>" alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>">
                     <span class="tag <?= $property['estado'] === 'Vendido' ? 'tag-compra' : 'tag-renta' ?>">
