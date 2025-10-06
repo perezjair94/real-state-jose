@@ -76,8 +76,13 @@ exit;
 function handleDeleteProperty($pdo, &$response) {
     $propertyId = (int)($_POST['id'] ?? 0);
 
+    // Debug logging
+    error_log("Delete Property Request - ID: {$propertyId}");
+    error_log("POST data: " . print_r($_POST, true));
+
     if ($propertyId <= 0) {
         $response['error'] = 'ID de propiedad inválido';
+        error_log("Error: Invalid property ID - {$propertyId}");
         return;
     }
 
@@ -89,8 +94,11 @@ function handleDeleteProperty($pdo, &$response) {
 
     if (!$property) {
         $response['error'] = 'Propiedad no encontrada';
+        error_log("Error: Property not found - ID: {$propertyId}");
         return;
     }
+
+    error_log("Property found - ID: {$propertyId}, Estado: {$property['estado']}");
 
     // Check if property is referenced in other tables
     $referenceChecks = [
@@ -104,12 +112,16 @@ function handleDeleteProperty($pdo, &$response) {
         $refSql = "SELECT COUNT(*) FROM {$table} WHERE id_inmueble = ?";
         $refStmt = $pdo->prepare($refSql);
         $refStmt->execute([$propertyId]);
+        $count = $refStmt->fetchColumn();
 
-        if ($refStmt->fetchColumn() > 0) {
+        if ($count > 0) {
             $response['error'] = $message;
+            error_log("Error: Cannot delete - {$count} records found in table {$table}");
             return;
         }
     }
+
+    error_log("No references found, proceeding with deletion");
 
     // Begin transaction
     $pdo->beginTransaction();
@@ -120,9 +132,16 @@ function handleDeleteProperty($pdo, &$response) {
             $photos = json_decode($property['fotos'], true);
             if (is_array($photos)) {
                 foreach ($photos as $photo) {
-                    $photoPath = UPLOAD_PATH_PROPERTIES . $photo;
-                    if (file_exists($photoPath)) {
-                        unlink($photoPath);
+                    // Only delete custom uploaded photos, not default images
+                    if (strpos($photo, 'img/') !== 0 && strpos($photo, 'casa') === false) {
+                        $photoPath = UPLOAD_PATH_PROPERTIES . $photo;
+                        if (file_exists($photoPath)) {
+                            if (unlink($photoPath)) {
+                                error_log("Deleted photo: {$photoPath}");
+                            } else {
+                                error_log("Failed to delete photo: {$photoPath}");
+                            }
+                        }
                     }
                 }
             }
@@ -133,22 +152,30 @@ function handleDeleteProperty($pdo, &$response) {
         $deleteStmt = $pdo->prepare($deleteSql);
         $result = $deleteStmt->execute([$propertyId]);
 
-        if ($result && $deleteStmt->rowCount() > 0) {
-            $pdo->commit();
-            $response['success'] = true;
-            $response['data'] = [
-                'id' => $propertyId,
-                'message' => 'Propiedad eliminada correctamente'
-            ];
+        if ($result) {
+            $rowsAffected = $deleteStmt->rowCount();
+            error_log("Delete executed - Rows affected: {$rowsAffected}");
 
-            // Log the deletion
-            logMessage("Property {$propertyId} deleted successfully", 'INFO');
+            if ($rowsAffected > 0) {
+                $pdo->commit();
+                $response['success'] = true;
+                $response['data'] = [
+                    'id' => $propertyId,
+                    'message' => 'Propiedad eliminada correctamente'
+                ];
+
+                error_log("Success: Property {$propertyId} deleted successfully");
+                logMessage("Property {$propertyId} deleted successfully", 'INFO');
+            } else {
+                throw new Exception('No se pudo eliminar la propiedad - ninguna fila afectada');
+            }
         } else {
-            throw new Exception('No se pudo eliminar la propiedad');
+            throw new Exception('Error al ejecutar la eliminación');
         }
 
     } catch (Exception $e) {
         $pdo->rollback();
+        error_log("Error during deletion: " . $e->getMessage());
         throw $e;
     }
 }

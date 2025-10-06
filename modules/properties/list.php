@@ -483,37 +483,56 @@ document.addEventListener('DOMContentLoaded', function() {
  * These functions enhance user experience with AJAX and interactive features
  */
 
-function confirmDelete(propertyId) {
-    if (confirm('¿Está seguro de que desea eliminar esta propiedad?\n\nEsta acción no se puede deshacer.')) {
-        // Use AJAX to delete the property
-        deleteProperty(propertyId);
+async function confirmDelete(propertyId) {
+    const formattedId = 'INM' + String(propertyId).padStart(3, '0');
+
+    if (!confirm(`¿Está seguro de que desea eliminar la propiedad ${formattedId}?\n\nEsta acción no se puede deshacer.`)) {
+        return;
     }
-}
 
-function deleteProperty(propertyId) {
-    const formData = new FormData();
-    formData.append('action', 'delete');
-    formData.append('id', propertyId);
-    formData.append('ajax', 'true');
-    formData.append('csrf_token', window.csrfToken);
+    try {
+        console.log('Eliminando propiedad:', propertyId);
 
-    fetch('index.php?module=properties', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Propiedad eliminada correctamente');
-            window.location.reload(); // Refresh the page
+        // Show loading state
+        const deleteButtons = document.querySelectorAll(`button[onclick*="confirmDelete(${propertyId})"]`);
+        deleteButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = 'Eliminando...';
+        });
+
+        const response = await Ajax.properties.delete(propertyId);
+        console.log('Respuesta del servidor:', response);
+
+        if (response.success) {
+            if (typeof App !== 'undefined' && App.showSuccessMessage) {
+                App.showSuccessMessage(response.data?.message || 'Propiedad eliminada correctamente');
+            } else {
+                alert('Propiedad eliminada correctamente');
+            }
+
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            alert('Error al eliminar la propiedad: ' + (data.error || 'Error desconocido'));
+            throw new Error(response.error || 'Error desconocido');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error de conexión al eliminar la propiedad');
-    });
+    } catch (error) {
+        console.error('Error al eliminar propiedad:', error);
+
+        if (typeof App !== 'undefined' && App.showErrorMessage) {
+            App.showErrorMessage('Error al eliminar la propiedad: ' + error.message);
+        } else {
+            alert('Error al eliminar la propiedad: ' + error.message);
+        }
+
+        // Restore buttons on error
+        const deleteButtons = document.querySelectorAll(`button[onclick*="confirmDelete(${propertyId})"]`);
+        deleteButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = 'Eliminar';
+        });
+    }
 }
 
 function exportProperties() {
