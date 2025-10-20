@@ -1,0 +1,49 @@
+# Logs generados por la aplicación
+logs/
+*.log
+
+# Archivos temporales de PHP
+*.tmp
+*.temp
+
+# Configuración local (si se crea)
+config/local.php
+
+# Archivos de sesión
+sessions/
+
+# Uploads de usuarios (mantener estructura, ignorar contenido)
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# Cache
+cache/
+*.cache
+
+# IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Herramienta de desarrollo (eliminar en producción)
+# generate_password_hash.php debería eliminarse en producción
+
+# PHPStorm
+.phpstorm.meta.php
+_ide_helper.php
+
+# Composer (si se usa en el futuro)
+vendor/
+composer.lock
+
+# Node modules (si se usa en el futuro)
+node_modules/
+package-lock.json
+
+# Environment files con datos sensibles
+.env
+.env.local
+.env.production
