@@ -41,12 +41,16 @@ La tabla `usuarios` debe contener:
 ### Usuario Administrador
 - **Usuario**: `admin`
 - **Contraseña**: `admin123`
-- **Acceso**: Panel completo de administración
+- **Email**: admin@inmobiliaria.com
+- **Acceso**: Panel completo de administración (todos los módulos CRUD)
 
 ### Usuario Cliente
 - **Usuario**: `cliente1`
 - **Contraseña**: `cliente123`
-- **Acceso**: Solo visualización de propiedades
+- **Email**: cliente1@example.com
+- **Acceso**: Solo visualización de propiedades (read-only)
+
+**IMPORTANTE:** Los hashes de contraseña en el SQL ya están actualizados y son válidos. Si reinstalaras la base de datos con `usuarios_schema.sql`, estas credenciales funcionarán inmediatamente.
 
 ---
 
@@ -170,7 +174,7 @@ if (password_verify($password, $hash)) {
 INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, activo)
 VALUES (
     'nuevo_admin',
-    '$2y$10$...',  -- Hash generado con password_hash('tu_password', PASSWORD_DEFAULT)
+    '$2y$12$...',  -- Hash generado con password_hash('tu_password', PASSWORD_DEFAULT) en PHP 8+
     'admin@example.com',
     'Nuevo Administrador',
     'admin',
@@ -181,28 +185,49 @@ VALUES (
 INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, id_cliente, activo)
 VALUES (
     'nuevo_cliente',
-    '$2y$10$...',  -- Hash generado
+    '$2y$12$...',  -- Hash generado (BCRYPT cost=12)
     'cliente@example.com',
     'Nuevo Cliente',
     'cliente',
-    1,  -- ID del cliente en la tabla 'cliente'
+    1,  -- ID del cliente en la tabla 'cliente' (opcional, puede ser NULL)
     TRUE
 );
 ```
 
-### Opción 2: Generar Hash en PHP
+**Notas importantes sobre hashes:**
+- PHP 8+ usa automáticamente cost=12 para BCRYPT (más seguro que cost=10 de versiones anteriores)
+- Los hashes generados son únicos cada vez, incluso para la misma contraseña
+- Un hash válido de BCRYPT siempre empieza con `$2y$12$` (en PHP 8+) o `$2y$10$` (versiones anteriores)
 
-Crea un archivo temporal `generate_password.php`:
+### Opción 2: Usar generate_password_hash.php
 
-```php
-<?php
-$password = 'tu_password_aqui';
-$hash = password_hash($password, PASSWORD_DEFAULT);
-echo "Hash: " . $hash;
-?>
+El proyecto incluye una utilidad web para generar hashes:
+
+```bash
+# 1. Inicia el servidor PHP
+php -S localhost:8000
+
+# 2. Accede en tu navegador a:
+# http://localhost:8000/generate_password_hash.php
+
+# 3. Ingresa la contraseña deseada
+# 4. Copia el hash generado
+# 5. Úsalo en tu INSERT SQL
 ```
 
-Ejecuta el archivo y copia el hash generado para insertarlo en la base de datos.
+**IMPORTANTE:** Elimina `generate_password_hash.php` en producción por seguridad.
+
+### Opción 3: Generar Hash desde Línea de Comandos
+
+```bash
+# Generar hash directamente
+php -r "echo password_hash('tu_password', PASSWORD_DEFAULT);"
+
+# Ejemplo de salida:
+# $2y$12$AbC1234567890XyZaBcDe.FgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJk
+
+# Copiar el hash completo (incluye $2y$12$ al inicio)
+```
 
 ---
 

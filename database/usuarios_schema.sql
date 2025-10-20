@@ -28,13 +28,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
     INDEX idx_usuario_activo (activo)
 ) ENGINE=InnoDB COMMENT='Usuarios del sistema con roles de administrador y cliente';
 
--- Insertar usuarios de ejemplo
+-- Insertar usuarios de ejemplo con hashes BCRYPT válidos
 -- Password para admin: admin123
 -- Password para cliente: cliente123
+-- NOTA: Los hashes fueron generados con password_hash('password', PASSWORD_DEFAULT) en PHP 8+
 
 INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, activo) VALUES
-('admin', '$2y$10$YJPnQvzRTPxk5RpDLxZRouq1VVZc.Xx4Rz8F0X7eWh5qV8p8gHLfS', 'admin@inmobiliaria.com', 'Administrador Principal', 'admin', TRUE),
-('cliente1', '$2y$10$Xq1L2N3M4P5Q6R7S8T9U0VWXYZabcdefghijklmnopqrstuvwxyz12', 'cliente1@example.com', 'Juan Pérez', 'cliente', TRUE);
+('admin', '$2y$12$9OAUGRwdmdutmljpSwBZ..BZlTQ/Qg4HJoq9/3xCNpquDjiOgDhTG', 'admin@inmobiliaria.com', 'Administrador Principal', 'admin', TRUE),
+('cliente1', '$2y$12$zMizpXl7K/aFPeMEEbTNluixm/eLRa8ypjJ9Hu2O07eZjtvgz9Psi', 'cliente1@example.com', 'Juan Pérez', 'cliente', TRUE);
 
 -- Vista para información de usuarios (sin contraseña)
 CREATE OR REPLACE VIEW vista_usuarios AS
@@ -75,21 +76,44 @@ DELIMITER ;
 /*
 NOTAS DE SEGURIDAD:
 1. Las contraseñas NUNCA se almacenan en texto plano
-2. Se usa password_hash() con BCRYPT (cost=10)
-3. Sistema de bloqueo tras intentos fallidos
-4. Sesiones con timeout configurado
-5. CSRF protection en todos los formularios
+2. Se usa password_hash() con BCRYPT (cost=12 automático en PHP 8+)
+3. Sistema de bloqueo tras 5 intentos fallidos (15 minutos de bloqueo)
+4. Sesiones con timeout configurado (1 hora por defecto)
+5. CSRF protection en todos los formularios (30 minutos de expiración)
 
 ROLES:
-- 'admin': Acceso completo a gestión de inmuebles, clientes, agentes, ventas, contratos, etc.
-- 'cliente': Acceso limitado a ver propiedades, sus propias visitas, contratos y datos personales
+- 'admin': Acceso completo a gestión de inmuebles, clientes, agentes, ventas, contratos, arriendos y visitas
+- 'cliente': Acceso limitado a ver propiedades disponibles (solo lectura, sin crear/editar/eliminar)
 
-CONTRASEÑAS DE PRUEBA:
-- admin / admin123
-- cliente1 / cliente123
+CREDENCIALES DE PRUEBA (Desarrollo):
+┌──────────┬──────────┬────────────────────────────┐
+│ Usuario  │ Password │ Rol                        │
+├──────────┼──────────┼────────────────────────────┤
+│ admin    │ admin123 │ admin (acceso completo)    │
+│ cliente1 │ cliente123│ cliente (solo ver props)   │
+└──────────┴──────────┴────────────────────────────┘
 
-PARA CREAR NUEVOS USUARIOS EN PHP:
-$password = 'mi_password';
-$hash = password_hash($password, PASSWORD_DEFAULT);
-// Luego insertar $hash en la base de datos
+PARA CREAR NUEVOS USUARIOS:
+
+Opción 1 - Usar generate_password_hash.php:
+1. Acceder a: http://localhost/real-state-jose/generate_password_hash.php
+2. Ingresar la contraseña deseada
+3. Copiar el hash generado
+4. Insertar en la base de datos:
+
+INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, activo)
+VALUES ('nuevo_usuario', 'HASH_COPIADO_AQUI', 'email@example.com', 'Nombre Completo', 'admin', TRUE);
+
+Opción 2 - Desde línea de comandos PHP:
+php -r "echo password_hash('tu_password', PASSWORD_DEFAULT);"
+
+Opción 3 - Vincular con cliente existente:
+INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, id_cliente, activo)
+VALUES ('cliente_user', 'HASH', 'email@example.com', 'Nombre', 'cliente', 123, TRUE);
+
+DESBLOQUEAR CUENTA:
+UPDATE usuarios SET intentos_login = 0, bloqueado_hasta = NULL WHERE username = 'usuario';
+
+DESACTIVAR USUARIO:
+UPDATE usuarios SET activo = FALSE WHERE username = 'usuario';
 */

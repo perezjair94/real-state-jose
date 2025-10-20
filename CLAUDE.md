@@ -85,9 +85,10 @@ mysql -u root -p real_estate_db < database/usuarios_schema.sql
 php generate_password_hash.php
 # Then insert the hash into usuarios table
 
-# Test credentials (development only):
-# Admin: admin / admin123
-# Client: cliente1 / cliente123
+# Test credentials (development only - hashes are valid BCRYPT):
+# Admin: admin / admin123 (email: admin@inmobiliaria.com)
+# Client: cliente1 / cliente123 (email: cliente1@example.com)
+# Los hashes en usuarios_schema.sql son válidos y funcionan inmediatamente
 ```
 
 ### Testing Database Connection
