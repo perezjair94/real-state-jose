@@ -68,6 +68,10 @@ La tabla `usuarios` debe contener:
 │
 ├── admin/                       # Área de Administrador
 │   ├── dashboard.php           # Panel principal admin
+│   ├── usuarios.php            # Gestión de usuarios (listado)
+│   ├── usuarios_crear.php      # Crear nuevo usuario
+│   ├── usuarios_editar.php     # Editar usuario existente
+│   ├── usuarios_ajax.php       # Operaciones AJAX (activar/desactivar/eliminar)
 │   └── logout.php              # Cerrar sesión admin
 │
 ├── cliente/                     # Área de Cliente
@@ -124,7 +128,15 @@ La tabla `usuarios` debe contener:
 ✅ Gestionar arriendos
 ✅ Programar visitas
 ✅ Acceso a estadísticas completas
-✅ Gestionar usuarios del sistema
+✅ **Gestionar usuarios del sistema** (Nuevo módulo completo):
+   - Crear usuarios admin y cliente
+   - Editar usuarios existentes
+   - Activar/desactivar cuentas
+   - Desbloquear usuarios bloqueados
+   - Eliminar usuarios
+   - Ver estadísticas de usuarios
+   - Filtrar por rol y estado
+   - Vincular usuarios cliente con registros de cliente
 
 ### Cliente (cliente)
 ✅ Ver propiedades disponibles
@@ -172,7 +184,51 @@ if (password_verify($password, $hash)) {
 
 ## 📝 Crear Nuevos Usuarios
 
-### Opción 1: Desde phpMyAdmin
+### ⭐ Opción 1: Módulo de Gestión de Usuarios (RECOMENDADO)
+
+El sistema incluye un módulo web completo para gestionar usuarios sin necesidad de SQL:
+
+```bash
+# 1. Iniciar sesión como administrador
+# URL: http://localhost/real-state-jose/login.php
+# Usuario: admin / Contraseña: admin123
+
+# 2. Ir al Dashboard Admin y hacer clic en "Usuarios"
+# O acceder directamente: http://localhost/real-state-jose/admin/usuarios.php
+
+# 3. Hacer clic en "+ Crear Usuario"
+# 4. Completar el formulario:
+#    - Nombre de usuario (mínimo 3 caracteres)
+#    - Email (único)
+#    - Contraseña (mínimo 6 caracteres, indicador de fortaleza)
+#    - Nombre completo
+#    - Rol: admin o cliente
+#    - Vincular con cliente (opcional, solo para rol cliente)
+#    - Estado: activo/inactivo
+
+# 5. Guardar - El hash de contraseña se genera automáticamente
+```
+
+**Características del módulo:**
+- ✅ Interfaz gráfica intuitiva con validaciones
+- ✅ Indicador visual de fortaleza de contraseña
+- ✅ Generación automática de hash BCRYPT
+- ✅ Validación de username y email únicos
+- ✅ Vinculación con clientes existentes (manual o automática por email)
+- ✅ Edición de usuarios (cambio opcional de contraseña)
+- ✅ Activar/desactivar usuarios sin eliminarlos
+- ✅ Desbloqueo de cuentas bloqueadas por intentos fallidos
+- ✅ Estadísticas en tiempo real
+- ✅ Filtros por rol y estado
+
+**Funcionalidades avanzadas:**
+- 🔓 Desbloquear usuarios bloqueados por intentos fallidos (15 min después de 5 intentos)
+- ⏸️ Activar/desactivar cuentas sin eliminarlas
+- ✏️ Editar usuarios manteniendo contraseña actual si no se especifica nueva
+- 🗑️ Eliminar usuarios (con protección contra auto-eliminación)
+- 📊 Ver último acceso y datos de auditoría
+
+### Opción 2: Desde phpMyAdmin (Avanzado)
 
 ```sql
 -- Crear nuevo usuario administrador
@@ -186,15 +242,28 @@ VALUES (
     TRUE
 );
 
--- Crear nuevo usuario cliente
-INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, id_cliente, activo)
+-- Crear nuevo usuario cliente (sin vincular)
+INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, activo)
 VALUES (
     'nuevo_cliente',
     '$2y$12$...',  -- Hash generado (BCRYPT cost=12)
     'cliente@example.com',
     'Nuevo Cliente',
     'cliente',
-    1,  -- ID del cliente en la tabla 'cliente' (opcional, puede ser NULL)
+    TRUE
+);
+-- NOTA: El trigger tr_usuario_vincular_cliente vinculará automáticamente
+--       por email si existe un cliente con el mismo correo
+
+-- Crear nuevo usuario cliente (vinculado manualmente)
+INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, id_cliente, activo)
+VALUES (
+    'nuevo_cliente2',
+    '$2y$12$...',
+    'otro@example.com',
+    'Otro Cliente',
+    'cliente',
+    5,  -- ID del cliente en la tabla 'cliente' (opcional)
     TRUE
 );
 ```
@@ -204,7 +273,12 @@ VALUES (
 - Los hashes generados son únicos cada vez, incluso para la misma contraseña
 - Un hash válido de BCRYPT siempre empieza con `$2y$12$` (en PHP 8+) o `$2y$10$` (versiones anteriores)
 
-### Opción 2: Usar generate_password_hash.php
+**Vinculación automática con clientes:**
+- El trigger `tr_usuario_vincular_cliente` vincula automáticamente usuarios tipo "cliente" con registros de la tabla `cliente` si el email coincide
+- Puedes vincular manualmente especificando `id_cliente` al insertar
+- Usuarios admin no necesitan vinculación con clientes
+
+### Opción 3: Usar generate_password_hash.php
 
 El proyecto incluye una utilidad web para generar hashes:
 
@@ -222,7 +296,7 @@ php -S localhost:8000
 
 **IMPORTANTE:** Elimina `generate_password_hash.php` en producción por seguridad.
 
-### Opción 3: Generar Hash desde Línea de Comandos
+### Opción 4: Generar Hash desde Línea de Comandos
 
 ```bash
 # Generar hash directamente
@@ -282,14 +356,24 @@ define('SESSION_TIMEOUT', 3600); // 1 hora en segundos
 
 ### Error: "Cuenta bloqueada"
 - **Causa**: 5 intentos de login fallidos
-- **Solución**: Esperar 15 minutos o desbloquear manualmente:
+- **Solución Opción 1 (Recomendada)**: Desbloquear desde el módulo de usuarios
+  1. Inicia sesión como administrador
+  2. Ve a `admin/usuarios.php`
+  3. Busca el usuario bloqueado (aparece con icono 🔒)
+  4. Haz clic en el botón 🔓 para desbloquear
+
+- **Solución Opción 2**: Desbloquear manualmente desde SQL
 ```sql
 UPDATE usuarios SET intentos_login = 0, bloqueado_hasta = NULL WHERE username = 'usuario';
 ```
 
 ### No puedo crear nuevos usuarios
 - **Causa**: Solo administradores pueden gestionar usuarios
-- **Solución**: Iniciar sesión como admin o crear desde SQL
+- **Solución**:
+  1. Iniciar sesión como admin (usuario: `admin`, contraseña: `admin123`)
+  2. Acceder al módulo de usuarios: `admin/usuarios.php`
+  3. Usar el botón "+ Crear Usuario" para agregar nuevos usuarios con interfaz gráfica
+  4. Alternativa: Crear desde SQL con INSERT directo
 
 ### Cliente ve página en blanco
 - **Causa**: Permisos insuficientes
