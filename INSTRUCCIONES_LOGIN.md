@@ -48,9 +48,14 @@ La tabla `usuarios` debe contener:
 - **Usuario**: `cliente1`
 - **Contraseña**: `cliente123`
 - **Email**: cliente1@example.com
+- **Cliente vinculado**: Juan Pérez (CC 1234567890)
 - **Acceso**: Solo visualización de propiedades (read-only)
+- **Funcionalidades**: Explorar propiedades, ver sus visitas, contratos y perfil
 
-**IMPORTANTE:** Los hashes de contraseña en el SQL ya están actualizados y son válidos. Si reinstalaras la base de datos con `usuarios_schema.sql`, estas credenciales funcionarán inmediatamente.
+**IMPORTANTE:**
+- Los hashes de contraseña en el SQL ya están actualizados y son válidos
+- El script `usuarios_schema.sql` ahora crea automáticamente un registro de cliente y lo vincula con el usuario cliente1
+- Si reinstalaras la base de datos, estas credenciales funcionarán inmediatamente con todas las funcionalidades
 
 ---
 

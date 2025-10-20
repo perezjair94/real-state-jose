@@ -28,14 +28,24 @@ CREATE TABLE IF NOT EXISTS usuarios (
     INDEX idx_usuario_activo (activo)
 ) ENGINE=InnoDB COMMENT='Usuarios del sistema con roles de administrador y cliente';
 
+-- Primero, crear un cliente de ejemplo para vincular con usuario cliente1
+-- Esto permite que el usuario cliente1 tenga acceso a visitas, contratos, etc.
+INSERT INTO cliente (nombre, apellido, tipo_documento, nro_documento, correo, direccion, tipo_cliente)
+VALUES ('Juan', 'Pérez', 'CC', '1234567890', 'cliente1@example.com', 'Calle 123 #45-67, Bogotá', 'Comprador')
+ON DUPLICATE KEY UPDATE correo = correo; -- No duplicar si ya existe
+
+-- Obtener el ID del cliente recién creado
+SET @cliente1_id = (SELECT id_cliente FROM cliente WHERE correo = 'cliente1@example.com' LIMIT 1);
+
 -- Insertar usuarios de ejemplo con hashes BCRYPT válidos
 -- Password para admin: admin123
 -- Password para cliente: cliente123
 -- NOTA: Los hashes fueron generados con password_hash('password', PASSWORD_DEFAULT) en PHP 8+
 
-INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, activo) VALUES
-('admin', '$2y$12$9OAUGRwdmdutmljpSwBZ..BZlTQ/Qg4HJoq9/3xCNpquDjiOgDhTG', 'admin@inmobiliaria.com', 'Administrador Principal', 'admin', TRUE),
-('cliente1', '$2y$12$zMizpXl7K/aFPeMEEbTNluixm/eLRa8ypjJ9Hu2O07eZjtvgz9Psi', 'cliente1@example.com', 'Juan Pérez', 'cliente', TRUE);
+INSERT INTO usuarios (username, password_hash, email, nombre_completo, rol, id_cliente, activo) VALUES
+('admin', '$2y$12$9OAUGRwdmdutmljpSwBZ..BZlTQ/Qg4HJoq9/3xCNpquDjiOgDhTG', 'admin@inmobiliaria.com', 'Administrador Principal', 'admin', NULL, TRUE),
+('cliente1', '$2y$12$zMizpXl7K/aFPeMEEbTNluixm/eLRa8ypjJ9Hu2O07eZjtvgz9Psi', 'cliente1@example.com', 'Juan Pérez', 'cliente', @cliente1_id, TRUE)
+ON DUPLICATE KEY UPDATE email = email; -- No duplicar si ya existe
 
 -- Vista para información de usuarios (sin contraseña)
 CREATE OR REPLACE VIEW vista_usuarios AS
