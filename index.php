@@ -19,6 +19,22 @@ require_once 'includes/functions.php';
 // Initialize session with security
 initSession();
 
+// Check if user is logged in - redirect to login if not
+if (!isLoggedIn()) {
+    header('Location: login.php');
+    exit;
+}
+
+// Check user role and redirect to appropriate dashboard if accessing root
+if (!isset($_GET['module']) && !isset($_GET['action'])) {
+    if (hasRole('admin')) {
+        header('Location: admin/dashboard.php');
+    } else {
+        header('Location: cliente/dashboard.php');
+    }
+    exit;
+}
+
 // Get and validate current module and action
 $module = $_GET['module'] ?? DEFAULT_MODULE;
 $action = $_GET['action'] ?? 'list';
@@ -34,6 +50,28 @@ if (!in_array($module, $allowedModules)) {
 
 if (!in_array($action, $allowedActions)) {
     $action = 'list';
+}
+
+// Authorization: Cliente role has limited access
+// Clientes can only view properties (read-only)
+if (hasRole('cliente')) {
+    // Only allow properties module with list and view actions
+    if ($module !== 'properties') {
+        redirectWithMessage(
+            'cliente/dashboard.php',
+            'No tienes permisos para acceder a este módulo.',
+            'error'
+        );
+    }
+
+    // Only allow list and view actions
+    if (!in_array($action, ['list', 'view'])) {
+        redirectWithMessage(
+            "?module={$module}&action=list",
+            'No tienes permisos para realizar esta acción.',
+            'error'
+        );
+    }
 }
 
 // Log access in development mode

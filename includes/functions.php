@@ -611,12 +611,97 @@ function logMessage($message, $level = 'INFO') {
 }
 
 /**
- * Check if user is logged in (for future authentication)
+ * Authentication and Authorization Functions
+ */
+
+/**
+ * Check if user is logged in
  *
  * @return bool True if logged in
  */
 function isLoggedIn() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    return isset($_SESSION['user_id']) &&
+           isset($_SESSION['logged_in']) &&
+           $_SESSION['logged_in'] === true;
+}
+
+/**
+ * Check if user has specific role
+ *
+ * @param string $role Role to check (admin, cliente)
+ * @return bool True if user has role
+ */
+function hasRole($role) {
+    return isLoggedIn() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === $role;
+}
+
+/**
+ * Require login - redirect to login if not logged in
+ */
+function requireLogin() {
+    if (!isLoggedIn()) {
+        header('Location: ../login.php');
+        exit;
+    }
+}
+
+/**
+ * Require specific role - redirect to appropriate dashboard if wrong role
+ *
+ * @param string $requiredRole Required role
+ */
+function requireRole($requiredRole) {
+    requireLogin();
+
+    if (!hasRole($requiredRole)) {
+        // Redirect to appropriate dashboard based on current role
+        if (hasRole('admin')) {
+            header('Location: ../admin/dashboard.php');
+        } else {
+            header('Location: ../cliente/dashboard.php');
+        }
+        exit;
+    }
+}
+
+/**
+ * Get current user info
+ *
+ * @return array User information from session
+ */
+function getCurrentUser() {
+    if (!isLoggedIn()) {
+        return null;
+    }
+
+    return [
+        'id' => $_SESSION['user_id'] ?? null,
+        'username' => $_SESSION['username'] ?? '',
+        'nombre_completo' => $_SESSION['nombre_completo'] ?? '',
+        'email' => $_SESSION['email'] ?? '',
+        'rol' => $_SESSION['user_role'] ?? '',
+        'id_cliente' => $_SESSION['id_cliente'] ?? null
+    ];
+}
+
+/**
+ * Logout user
+ */
+function logout() {
+    // Clear all session variables
+    $_SESSION = [];
+
+    // Destroy session cookie
+    if (isset($_COOKIE[session_name()])) {
+        setcookie(session_name(), '', time() - 3600, '/');
+    }
+
+    // Destroy session
+    session_destroy();
+
+    // Redirect to login
+    header('Location: ../login.php?logout=1');
+    exit;
 }
 
 /**
