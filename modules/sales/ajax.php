@@ -511,7 +511,7 @@ function handleSearch($pdo, $data) {
                 'property' => $sale['tipo_inmueble'] . ' - ' . $sale['direccion'] . ', ' . $sale['ciudad'],
                 'client' => $sale['cliente_nombre'] . ' ' . $sale['cliente_apellido'],
                 'agent' => $sale['agente_nombre'] ?: 'Sin agente',
-                'label' => 'VEN' . str_pad($sale['id_venta'], 3, '0', STR_PAD_LEFT') . ' - ' .
+                'label' => 'VEN' . str_pad($sale['id_venta'], 3, '0', STR_PAD_LEFT) . ' - ' .
                           $sale['tipo_inmueble'] . ' - ' . number_format($sale['valor'], 0, ',', '.')
             ];
         }, $sales);
