@@ -39,7 +39,7 @@ INSERT INTO inmueble (tipo_inmueble, direccion, ciudad, precio, descripcion, are
 
 ('Lote', 'Vereda Las Flores, Kilómetro 15 Vía al Mar', 'Cartagena', 280000000.00, 'Lote plano ideal para construcción de casa campestre. Cuenta con acceso a servicios públicos y escrituras al día.', NULL, 1200.00, 0, 0, FALSE, 'Disponible'),
 
-('Casa', 'Calle 67 #123-45, Barrio Los Rosales', 'Bucaramanga', 380000000.00, 'Casa familiar en excelente estado, remodelada recientemente. Cuenta con patio trasero, zona BBQ y estudio independiente.', 160.25, 200.50, 3, 2, TRUE, 'Reservado'),
+('Casa', 'Calle 67 #123-45, Barrio Los Rosales', 'Bucaramanga', 380000000.00, 'Casa familiar en excelente estado, remodelada recientemente. Cuenta con patio trasero, zona BBQ y estudio independiente.', 160.25, 200.50, 3, 2, TRUE, 'Disponible'),
 
 ('Apartamento', 'Conjunto Residencial Alamedas, Torre 3, Apto 801', 'Pereira', 250000000.00, 'Apartamento nuevo en conjunto cerrado con zonas verdes, piscina y cancha múltiple. Excelente ubicación cerca al centro comercial.', 78.90, NULL, 2, 2, TRUE, 'Disponible'),
 

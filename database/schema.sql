@@ -28,7 +28,7 @@ CREATE TABLE inmueble (
     direccion TEXT NOT NULL COMMENT 'Property address',
     ciudad VARCHAR(100) NOT NULL COMMENT 'City location',
     precio DECIMAL(15,2) NOT NULL COMMENT 'Property price in COP',
-    estado ENUM('Disponible', 'Vendido', 'Arrendado', 'Reservado') DEFAULT 'Disponible' COMMENT 'Property status',
+    estado ENUM('Disponible', 'Vendido', 'Arrendado') DEFAULT 'Disponible' COMMENT 'Property status',
     descripcion TEXT COMMENT 'Detailed property description',
     fotos JSON COMMENT 'Array of photo file names',
     area_construida DECIMAL(8,2) COMMENT 'Built area in m2',

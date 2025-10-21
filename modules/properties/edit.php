@@ -833,9 +833,6 @@ if (typeof Storage !== "undefined") {
     background-color: #fff3cd;
 }
 
-#estado option[value="Reservado"] {
-    background-color: #f8d7da;
-}
 
 #estado option[value="Disponible"] {
     background-color: #d4edda;

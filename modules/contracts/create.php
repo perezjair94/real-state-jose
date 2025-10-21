@@ -26,7 +26,7 @@ try {
     // Get available properties
     $propSql = "SELECT id_inmueble, tipo_inmueble, direccion, ciudad, precio, estado
                 FROM inmueble
-                WHERE estado IN ('Disponible', 'Reservado')
+                WHERE estado = 'Disponible'
                 ORDER BY created_at DESC";
     $propStmt = $pdo->prepare($propSql);
     $propStmt->execute();

@@ -251,7 +251,7 @@ CREATE TABLE inmuebles (
     direccion TEXT NOT NULL,
     ciudad VARCHAR(100) NOT NULL,
     precio DECIMAL(15,2) NOT NULL,
-    estado ENUM('Disponible', 'Vendido', 'Arrendado', 'Reservado') DEFAULT 'Disponible',
+    estado ENUM('Disponible', 'Vendido', 'Arrendado') DEFAULT 'Disponible',
     descripcion TEXT,
     fotos TEXT, -- JSON array of photo URLs
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP

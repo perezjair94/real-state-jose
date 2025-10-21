@@ -25,7 +25,7 @@ try {
     $pdo = $db->getConnection();
 
     // Get available properties
-    $stmt = $pdo->prepare("SELECT id_inmueble, tipo_inmueble, direccion, ciudad FROM inmueble WHERE estado IN ('Disponible', 'Reservado') ORDER BY tipo_inmueble, direccion");
+    $stmt = $pdo->prepare("SELECT id_inmueble, tipo_inmueble, direccion, ciudad FROM inmueble WHERE estado = 'Disponible' ORDER BY tipo_inmueble, direccion");
     $stmt->execute();
     $propertiesData = $stmt->fetchAll();
     foreach ($propertiesData as $property) {
