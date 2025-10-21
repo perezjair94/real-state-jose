@@ -15,7 +15,8 @@ $properties = [];
 $searchTerm = $_GET['search'] ?? '';
 $statusFilter = $_GET['status'] ?? '';
 $typeFilter = $_GET['type'] ?? '';
-$cityFilter = $_GET['city'] ?? '';
+$priceMin = $_GET['price_min'] ?? '';
+$priceMax = $_GET['price_max'] ?? '';
 $sortBy = $_GET['sort'] ?? 'created_at';
 $sortOrder = $_GET['order'] ?? 'DESC';
 
@@ -33,9 +34,8 @@ try {
     $params = [];
 
     if (!empty($searchTerm)) {
-        $whereConditions[] = "(direccion LIKE ? OR descripcion LIKE ? OR ciudad LIKE ?)";
+        $whereConditions[] = "(direccion LIKE ? OR descripcion LIKE ?)";
         $searchWildcard = "%{$searchTerm}%";
-        $params[] = $searchWildcard;
         $params[] = $searchWildcard;
         $params[] = $searchWildcard;
     }
@@ -50,9 +50,14 @@ try {
         $params[] = $typeFilter;
     }
 
-    if (!empty($cityFilter)) {
-        $whereConditions[] = "ciudad = ?";
-        $params[] = $cityFilter;
+    if (!empty($priceMin)) {
+        $whereConditions[] = "precio >= ?";
+        $params[] = (float)$priceMin;
+    }
+
+    if (!empty($priceMax)) {
+        $whereConditions[] = "precio <= ?";
+        $params[] = (float)$priceMax;
     }
 
     $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
@@ -84,10 +89,6 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $properties = $stmt->fetchAll();
-
-    // Get unique cities for filter dropdown
-    $citiesStmt = $pdo->query("SELECT DISTINCT ciudad FROM inmueble ORDER BY ciudad");
-    $cities = $citiesStmt->fetchAll(PDO::FETCH_COLUMN);
 
 } catch (PDOException $e) {
     error_log("Error fetching properties: " . $e->getMessage());
@@ -124,7 +125,7 @@ try {
 
         <div class="form-row">
             <div class="form-group">
-                <label for="search">Buscar por dirección, descripción o ciudad:</label>
+                <label for="search">Buscar por dirección o descripción:</label>
                 <input
                     type="text"
                     id="search"
@@ -162,15 +163,30 @@ try {
             </div>
 
             <div class="form-group">
-                <label for="city">Ciudad:</label>
-                <select id="city" name="city" class="form-control">
-                    <option value="">Todas las ciudades</option>
-                    <?php foreach ($cities as $city): ?>
-                        <option value="<?= htmlspecialchars($city) ?>" <?= $cityFilter === $city ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($city) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <label>Rango de Precio:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input
+                        type="number"
+                        id="price_min"
+                        name="price_min"
+                        value="<?= htmlspecialchars($priceMin) ?>"
+                        placeholder="Mínimo"
+                        class="form-control"
+                        min="0"
+                        step="1000000"
+                    >
+                    <span style="color: var(--text-secondary);">hasta</span>
+                    <input
+                        type="number"
+                        id="price_max"
+                        name="price_max"
+                        value="<?= htmlspecialchars($priceMax) ?>"
+                        placeholder="Máximo"
+                        class="form-control"
+                        min="0"
+                        step="1000000"
+                    >
+                </div>
             </div>
         </div>
 
@@ -185,7 +201,7 @@ try {
 <div class="results-summary">
     <p>
         Mostrando <?= count($properties) ?> de <?= $totalRecords ?> propiedades
-        <?php if (!empty($searchTerm) || !empty($statusFilter) || !empty($typeFilter) || !empty($cityFilter)): ?>
+        <?php if (!empty($searchTerm) || !empty($statusFilter) || !empty($typeFilter) || !empty($priceMin) || !empty($priceMax)): ?>
             (filtradas)
         <?php endif; ?>
     </p>
@@ -423,7 +439,7 @@ try {
     <div class="card">
         <div class="no-results">
             <h3>No se encontraron propiedades</h3>
-            <?php if (!empty($searchTerm) || !empty($statusFilter) || !empty($typeFilter) || !empty($cityFilter)): ?>
+            <?php if (!empty($searchTerm) || !empty($statusFilter) || !empty($typeFilter) || !empty($priceMin) || !empty($priceMax)): ?>
                 <p>No hay propiedades que coincidan con los filtros seleccionados.</p>
                 <a href="?module=properties" class="btn btn-secondary">Ver todas las propiedades</a>
             <?php else: ?>
