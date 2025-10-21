@@ -388,6 +388,80 @@ const Ajax = {
         }
     },
 
+    // Sales module
+    sales: {
+        async list(filters = {}) {
+            const params = new URLSearchParams({
+                module: 'sales',
+                action: 'list',
+                ...filters
+            });
+
+            return Ajax.manager.get('index.php?' + params.toString());
+        },
+
+        async get(id) {
+            const formData = new FormData();
+            formData.append('action', 'get');
+            formData.append('id', id);
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        },
+
+        async create(data) {
+            const formData = new FormData();
+
+            for (const [key, value] of Object.entries(data)) {
+                formData.append(key, value);
+            }
+
+            formData.append('action', 'create');
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        },
+
+        async update(id, data) {
+            const formData = new FormData();
+
+            for (const [key, value] of Object.entries(data)) {
+                formData.append(key, value);
+            }
+
+            formData.append('action', 'update');
+            formData.append('id', id);
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        },
+
+        async delete(id) {
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('id', id);
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        },
+
+        async search(query, filters = {}) {
+            const formData = new FormData();
+            formData.append('action', 'search');
+            formData.append('term', query);
+
+            for (const [key, value] of Object.entries(filters)) {
+                formData.append(key, value);
+            }
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        },
+
+        async getStatistics(period = 'all') {
+            const formData = new FormData();
+            formData.append('action', 'statistics');
+            formData.append('period', period);
+
+            return Ajax.manager.post('index.php?module=sales&action=ajax', formData);
+        }
+    },
+
     // Utility functions
     utils: {
         /**
