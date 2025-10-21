@@ -96,9 +96,15 @@ try {
                                class="btn btn-sm btn-info" title="Ver detalles">
                                 Ver Detalles
                             </a>
-                            <button type="button" class="btn btn-sm btn-secondary"
-                                    onclick="alert('Generar factura en desarrollo')" title="Factura">
-                                Factura
+                            <a href="?module=sales&action=edit&id=<?= $sale['id_venta'] ?>"
+                               class="btn btn-sm btn-secondary" title="Editar">
+                                Editar
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-danger"
+                                    onclick="confirmDelete(<?= $sale['id_venta'] ?>)"
+                                    title="Eliminar">
+                                Eliminar
                             </button>
                         </td>
                     </tr>
@@ -193,3 +199,73 @@ try {
     color: #721c24;
 }
 </style>
+
+<script>
+/**
+ * Delete sale with confirmation
+ */
+async function confirmDelete(saleId) {
+    const formattedId = 'VEN' + String(saleId).padStart(3, '0');
+
+    if (!confirm(`¿Está seguro de que desea eliminar la venta ${formattedId}?\n\nEsta acción no se puede deshacer y el inmueble volverá a estar disponible.`)) {
+        return;
+    }
+
+    try {
+        console.log('Eliminando venta:', saleId);
+
+        // Show loading state
+        const deleteButtons = document.querySelectorAll(`button[onclick*="confirmDelete(${saleId})"]`);
+        deleteButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = 'Eliminando...';
+        });
+
+        const response = await Ajax.sales.delete(saleId);
+        console.log('Respuesta del servidor:', response);
+
+        if (response.success) {
+            if (typeof App !== 'undefined' && App.showSuccessMessage) {
+                App.showSuccessMessage(response.message || 'Venta eliminada correctamente');
+            } else {
+                alert('✓ ' + (response.message || 'Venta eliminada correctamente'));
+            }
+
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            throw new Error(response.message || 'Error desconocido');
+        }
+    } catch (error) {
+        console.error('Error al eliminar venta:', error);
+
+        let errorMessage = error.message;
+        let alertIcon = '⚠️';
+
+        // Check if it's a reference constraint error
+        if (errorMessage.includes('contrato(s) relacionado(s)')) {
+            alertIcon = '🔒';
+            errorMessage = `NO SE PUEDE ELIMINAR LA VENTA ${formattedId}\n\n` +
+                          `Motivo: Esta venta tiene contratos relacionados.\n\n` +
+                          `Para eliminar esta venta, primero debe eliminar o desvincular todos los contratos asociados.`;
+        } else {
+            errorMessage = `${alertIcon} Error al eliminar la venta ${formattedId}:\n\n${errorMessage}`;
+        }
+
+        if (typeof App !== 'undefined' && App.showErrorMessage) {
+            App.showErrorMessage(errorMessage);
+        } else {
+            alert(errorMessage);
+        }
+
+        // Restore buttons on error
+        const deleteButtons = document.querySelectorAll(`button[onclick*="confirmDelete(${saleId})"]`);
+        deleteButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = 'Eliminar';
+        });
+    }
+}
+</script>
