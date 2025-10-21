@@ -257,7 +257,7 @@ try {
 
                     if (!empty($fotos) && isset($fotos[0])) {
                         // Use uploaded photo
-                        $imageSrc = 'img/' . htmlspecialchars($fotos[0]);
+                        $imageSrc = 'assets/uploads/properties/' . htmlspecialchars($fotos[0]);
                         $hasCustomPhoto = true;
                     } else {
                         // Use default image based on property type or rotation
