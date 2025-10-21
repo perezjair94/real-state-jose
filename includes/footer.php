@@ -65,16 +65,16 @@ if (!defined('APP_ACCESS')) {
     <script src="https://kit.fontawesome.com/a2d9d6f7b4.js" crossorigin="anonymous"></script>
 
     <!-- JavaScript Files -->
-    <script src="assets/js/app.js"></script>
-    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/app.js?v=<?= APP_VERSION ?>"></script>
+    <script src="assets/js/validation.js?v=<?= APP_VERSION ?>"></script>
 
     <?php if ($currentModule === 'properties' || $currentModule === 'contracts'): ?>
         <!-- Load file upload JavaScript only when needed -->
-        <script src="assets/js/file-upload.js"></script>
+        <script src="assets/js/file-upload.js?v=<?= APP_VERSION ?>"></script>
     <?php endif; ?>
 
     <!-- AJAX JavaScript for enhanced user experience -->
-    <script src="assets/js/ajax.js"></script>
+    <script src="assets/js/ajax.js?v=<?= APP_VERSION ?>"></script>
 
     <!-- Educational comment: Scripts are loaded at the end for better performance -->
 
