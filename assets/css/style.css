@@ -546,10 +546,6 @@ body {
     background-color: #0066cc; /* Blue for available properties */
 }
 
-.tag-reservado {
-    background-color: #ff9800; /* Orange for reserved properties */
-}
-
 .card-body {
     padding: 20px;
     text-align: left;
@@ -653,11 +649,6 @@ body {
 .status.arrendado {
     background: #fff3cd;
     color: #856404;
-}
-
-.status.reservado {
-    background: #d1ecf1;
-    color: #0c5460;
 }
 
 /* ========================================

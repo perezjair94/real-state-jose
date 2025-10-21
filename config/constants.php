@@ -133,7 +133,6 @@ define('PROPERTY_TYPES', [
 // Property Status
 define('PROPERTY_STATUS', [
     'Disponible' => 'Disponible',
-    'Reservado' => 'Reservado',
     'Arrendado' => 'Arrendado',
     'Vendido' => 'Vendido'
 ]);
