@@ -417,7 +417,7 @@ try {
                                 <p class="property-description"><?= htmlspecialchars($prop['descripcion']) ?></p>
                             <?php endif; ?>
 
-                            <a href="../index.php?module=properties&action=view&id=<?= $prop['id_inmueble'] ?>" class="btn-view">
+                            <a href="detalle-propiedad.php?id=<?= $prop['id_inmueble'] ?>" class="btn-view">
                                 Ver Detalles
                             </a>
                         </div>
