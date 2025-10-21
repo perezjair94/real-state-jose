@@ -69,10 +69,20 @@ class AjaxManager {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
-                const data = await response.json();
+                // Get response text first to handle potential JSON parse errors
+                const text = await response.text();
+
+                // Try to parse as JSON
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON Parse Error. Server response:', text.substring(0, 500));
+                    throw new Error('El servidor devolvió una respuesta inválida. Revisa la consola para más detalles.');
+                }
 
                 if (data.success === false) {
-                    throw new Error(data.error || 'Server returned an error');
+                    throw new Error(data.message || data.error || 'Server returned an error');
                 }
 
                 return data;
