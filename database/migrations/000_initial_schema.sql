@@ -1,19 +1,17 @@
--- Real Estate Management System Database Schema
--- PHP/MySQL Educational Project
--- Character set: utf8mb4 for full UTF-8 support including emojis
---
--- IMPORTANT: This is the master schema file for reference.
--- For incremental updates, use migrations in database/migrations/
--- Initial setup: Run migrations/000_initial_schema.sql instead of this file
---
--- This file is maintained for documentation and complete fresh installs only.
+-- Migration: Initial Database Schema
+-- Date: 2025-10-21
+-- Description: Base schema for Real Estate Management System
+-- This migration creates all initial tables, views, triggers, and indexes
 
-CREATE DATABASE IF NOT EXISTS real_estate_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE real_estate_db;
+
+-- ============================================================================
+-- TABLES
+-- ============================================================================
 
 -- Client entity (cliente)
 -- Stores customer information for buyers, sellers, renters, and landlords
-CREATE TABLE cliente (
+CREATE TABLE IF NOT EXISTS cliente (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL COMMENT 'First name',
     apellido VARCHAR(100) NOT NULL COMMENT 'Last name',
@@ -28,7 +26,7 @@ CREATE TABLE cliente (
 
 -- Property entity (inmueble)
 -- Stores property listings with details and status
-CREATE TABLE inmueble (
+CREATE TABLE IF NOT EXISTS inmueble (
     id_inmueble INT AUTO_INCREMENT PRIMARY KEY,
     tipo_inmueble ENUM('Casa', 'Apartamento', 'Local', 'Oficina', 'Lote') NOT NULL COMMENT 'Property type',
     direccion TEXT NOT NULL COMMENT 'Property address',
@@ -48,7 +46,7 @@ CREATE TABLE inmueble (
 
 -- Agent entity (agente)
 -- Real estate agents managing properties and client relationships
-CREATE TABLE agente (
+CREATE TABLE IF NOT EXISTS agente (
     id_agente INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL COMMENT 'Full agent name',
     correo VARCHAR(150) UNIQUE NOT NULL COMMENT 'Agent email address',
@@ -61,7 +59,7 @@ CREATE TABLE agente (
 
 -- Sales entity (venta)
 -- Records completed property sales transactions
-CREATE TABLE venta (
+CREATE TABLE IF NOT EXISTS venta (
     id_venta INT AUTO_INCREMENT PRIMARY KEY,
     fecha_venta DATE NOT NULL COMMENT 'Sale completion date',
     valor DECIMAL(15,2) NOT NULL COMMENT 'Final sale price',
@@ -79,7 +77,7 @@ CREATE TABLE venta (
 
 -- Contract entity (contrato)
 -- Legal contracts for sales and rental agreements
-CREATE TABLE contrato (
+CREATE TABLE IF NOT EXISTS contrato (
     id_contrato INT AUTO_INCREMENT PRIMARY KEY,
     tipo_contrato ENUM('Venta', 'Arriendo') NOT NULL COMMENT 'Contract type: Sale or Rental',
     fecha_inicio DATE NOT NULL COMMENT 'Contract start date',
@@ -101,7 +99,7 @@ CREATE TABLE contrato (
 
 -- Rental entity (arriendo)
 -- Active rental agreements and payment tracking
-CREATE TABLE arriendo (
+CREATE TABLE IF NOT EXISTS arriendo (
     id_arriendo INT AUTO_INCREMENT PRIMARY KEY,
     fecha_inicio DATE NOT NULL COMMENT 'Rental start date',
     fecha_fin DATE NOT NULL COMMENT 'Rental end date',
@@ -117,15 +115,12 @@ CREATE TABLE arriendo (
 
     FOREIGN KEY (id_inmueble) REFERENCES inmueble(id_inmueble) ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (id_agente) REFERENCES agente(id_agente) ON DELETE SET NULL ON UPDATE CASCADE,
-
-    INDEX idx_arriendo_fechas (fecha_inicio, fecha_fin),
-    INDEX idx_arriendo_estado (estado)
+    FOREIGN KEY (id_agente) REFERENCES agente(id_agente) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Active rental agreements';
 
 -- Visit entity (visita)
 -- Scheduled property visits with clients and agents
-CREATE TABLE visita (
+CREATE TABLE IF NOT EXISTS visita (
     id_visita INT AUTO_INCREMENT PRIMARY KEY,
     fecha_visita DATE NOT NULL COMMENT 'Visit date',
     hora_visita TIME NOT NULL COMMENT 'Visit time',
@@ -140,27 +135,42 @@ CREATE TABLE visita (
 
     FOREIGN KEY (id_inmueble) REFERENCES inmueble(id_inmueble) ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (id_agente) REFERENCES agente(id_agente) ON DELETE RESTRICT ON UPDATE CASCADE,
-
-    INDEX idx_visita_fecha (fecha_visita, hora_visita),
-    INDEX idx_visita_agente (id_agente)
+    FOREIGN KEY (id_agente) REFERENCES agente(id_agente) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Scheduled property visits';
 
--- Create additional indexes for performance
-ALTER TABLE cliente ADD INDEX idx_cliente_documento (tipo_documento, nro_documento);
-ALTER TABLE cliente ADD INDEX idx_cliente_email (correo);
-ALTER TABLE cliente ADD INDEX idx_cliente_tipo (tipo_cliente);
+-- ============================================================================
+-- INDEXES
+-- ============================================================================
 
-ALTER TABLE inmueble ADD INDEX idx_inmueble_ubicacion (ciudad);
-ALTER TABLE inmueble ADD INDEX idx_inmueble_tipo (tipo_inmueble);
-ALTER TABLE inmueble ADD INDEX idx_inmueble_estado (estado);
-ALTER TABLE inmueble ADD INDEX idx_inmueble_precio (precio);
+-- Cliente indexes
+CREATE INDEX IF NOT EXISTS idx_cliente_documento ON cliente(tipo_documento, nro_documento);
+CREATE INDEX IF NOT EXISTS idx_cliente_email ON cliente(correo);
+CREATE INDEX IF NOT EXISTS idx_cliente_tipo ON cliente(tipo_cliente);
 
-ALTER TABLE agente ADD INDEX idx_agente_email (correo);
-ALTER TABLE agente ADD INDEX idx_agente_activo (activo);
+-- Inmueble indexes
+CREATE INDEX IF NOT EXISTS idx_inmueble_ubicacion ON inmueble(ciudad);
+CREATE INDEX IF NOT EXISTS idx_inmueble_tipo ON inmueble(tipo_inmueble);
+CREATE INDEX IF NOT EXISTS idx_inmueble_estado ON inmueble(estado);
+CREATE INDEX IF NOT EXISTS idx_inmueble_precio ON inmueble(precio);
 
--- Create views for common queries
-CREATE VIEW vista_propiedades_disponibles AS
+-- Agente indexes
+CREATE INDEX IF NOT EXISTS idx_agente_email ON agente(correo);
+CREATE INDEX IF NOT EXISTS idx_agente_activo ON agente(activo);
+
+-- Arriendo indexes
+CREATE INDEX IF NOT EXISTS idx_arriendo_fechas ON arriendo(fecha_inicio, fecha_fin);
+CREATE INDEX IF NOT EXISTS idx_arriendo_estado ON arriendo(estado);
+
+-- Visita indexes
+CREATE INDEX IF NOT EXISTS idx_visita_fecha ON visita(fecha_visita, hora_visita);
+CREATE INDEX IF NOT EXISTS idx_visita_agente ON visita(id_agente);
+
+-- ============================================================================
+-- VIEWS
+-- ============================================================================
+
+-- View: Available properties
+CREATE OR REPLACE VIEW vista_propiedades_disponibles AS
 SELECT
     i.id_inmueble,
     i.tipo_inmueble,
@@ -176,7 +186,8 @@ FROM inmueble i
 WHERE i.estado = 'Disponible'
 ORDER BY i.created_at DESC;
 
-CREATE VIEW vista_contratos_activos AS
+-- View: Active contracts
+CREATE OR REPLACE VIEW vista_contratos_activos AS
 SELECT
     c.id_contrato,
     c.tipo_contrato,
@@ -195,10 +206,14 @@ LEFT JOIN agente a ON c.id_agente = a.id_agente
 WHERE c.estado = 'Activo'
 ORDER BY c.fecha_inicio DESC;
 
--- Educational triggers for data integrity
+-- ============================================================================
+-- TRIGGERS
+-- ============================================================================
+
 DELIMITER $$
 
--- Trigger to update property status when sold
+-- Trigger: Update property status when sold
+DROP TRIGGER IF EXISTS tr_venta_actualizar_estado$$
 CREATE TRIGGER tr_venta_actualizar_estado
 AFTER INSERT ON venta
 FOR EACH ROW
@@ -208,7 +223,8 @@ BEGIN
     WHERE id_inmueble = NEW.id_inmueble;
 END$$
 
--- Trigger to update property status when rented
+-- Trigger: Update property status when rented
+DROP TRIGGER IF EXISTS tr_arriendo_actualizar_estado$$
 CREATE TRIGGER tr_arriendo_actualizar_estado
 AFTER INSERT ON arriendo
 FOR EACH ROW
@@ -218,7 +234,8 @@ BEGIN
     WHERE id_inmueble = NEW.id_inmueble;
 END$$
 
--- Trigger to check rental end dates
+-- Trigger: Check rental end dates
+DROP TRIGGER IF EXISTS tr_arriendo_verificar_fechas$$
 CREATE TRIGGER tr_arriendo_verificar_fechas
 BEFORE INSERT ON arriendo
 FOR EACH ROW
@@ -231,5 +248,31 @@ END$$
 
 DELIMITER ;
 
--- Insert some sample data for development/testing
--- This will be moved to seed.sql for optional testing data
+-- ============================================================================
+-- VERIFICATION
+-- ============================================================================
+
+-- Verify tables were created
+SELECT
+    'Tables created' AS Status,
+    COUNT(*) AS Count
+FROM information_schema.tables
+WHERE table_schema = 'real_estate_db'
+    AND table_name IN ('cliente', 'inmueble', 'agente', 'venta', 'contrato', 'arriendo', 'visita');
+
+-- Verify views were created
+SELECT
+    'Views created' AS Status,
+    COUNT(*) AS Count
+FROM information_schema.views
+WHERE table_schema = 'real_estate_db'
+    AND table_name IN ('vista_propiedades_disponibles', 'vista_contratos_activos');
+
+-- Verify triggers were created
+SELECT
+    'Triggers created' AS Status,
+    COUNT(*) AS Count
+FROM information_schema.triggers
+WHERE trigger_schema = 'real_estate_db';
+
+SELECT 'Migration 000_initial_schema.sql completed successfully!' AS Result;
