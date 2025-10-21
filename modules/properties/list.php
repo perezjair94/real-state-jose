@@ -305,9 +305,17 @@ try {
                             <span><?= htmlspecialchars(substr($property['tipo_inmueble'], 0, 4)) ?></span>
                         </div>
                     </div>
-                    <div style="margin-top: 15px; text-align: center;">
+                    <div style="margin-top: 15px; text-align: center; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                         <a href="?module=properties&action=view&id=<?= $property['id_inmueble'] ?>" class="btn btn-small">Ver Detalles</a>
                         <a href="?module=properties&action=edit&id=<?= $property['id_inmueble'] ?>" class="btn btn-small btn-secondary">Editar</a>
+                        <?php if ($property['estado'] === 'Disponible'): ?>
+                            <button type="button"
+                                    class="btn btn-small btn-danger"
+                                    onclick="confirmDelete(<?= $property['id_inmueble'] ?>)"
+                                    title="Eliminar">
+                                Eliminar
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -523,7 +531,7 @@ async function confirmDelete(propertyId) {
             if (typeof App !== 'undefined' && App.showSuccessMessage) {
                 App.showSuccessMessage(response.data?.message || 'Propiedad eliminada correctamente');
             } else {
-                alert('Propiedad eliminada correctamente');
+                alert('✓ Propiedad eliminada correctamente');
             }
 
             // Refresh the page after a short delay
@@ -536,10 +544,39 @@ async function confirmDelete(propertyId) {
     } catch (error) {
         console.error('Error al eliminar propiedad:', error);
 
-        if (typeof App !== 'undefined' && App.showErrorMessage) {
-            App.showErrorMessage('Error al eliminar la propiedad: ' + error.message);
+        // Create a more detailed error message
+        let errorMessage = error.message;
+        let alertIcon = '⚠️';
+
+        // Check if it's a reference constraint error
+        if (errorMessage.includes('ventas registradas')) {
+            alertIcon = '🔒';
+            errorMessage = `NO SE PUEDE ELIMINAR LA PROPIEDAD ${formattedId}\n\n` +
+                          `Motivo: Esta propiedad tiene ventas registradas.\n\n` +
+                          `Para eliminar esta propiedad, primero debe eliminar o desvincular todas las ventas asociadas.`;
+        } else if (errorMessage.includes('contratos activos')) {
+            alertIcon = '🔒';
+            errorMessage = `NO SE PUEDE ELIMINAR LA PROPIEDAD ${formattedId}\n\n` +
+                          `Motivo: Esta propiedad tiene contratos activos.\n\n` +
+                          `Para eliminar esta propiedad, primero debe eliminar o desvincular todos los contratos asociados.`;
+        } else if (errorMessage.includes('arriendos activos')) {
+            alertIcon = '🔒';
+            errorMessage = `NO SE PUEDE ELIMINAR LA PROPIEDAD ${formattedId}\n\n` +
+                          `Motivo: Esta propiedad tiene arriendos activos.\n\n` +
+                          `Para eliminar esta propiedad, primero debe eliminar o desvincular todos los arriendos asociados.`;
+        } else if (errorMessage.includes('visitas programadas')) {
+            alertIcon = '🔒';
+            errorMessage = `NO SE PUEDE ELIMINAR LA PROPIEDAD ${formattedId}\n\n` +
+                          `Motivo: Esta propiedad tiene visitas programadas.\n\n` +
+                          `Para eliminar esta propiedad, primero debe eliminar o desvincular todas las visitas asociadas.`;
         } else {
-            alert('Error al eliminar la propiedad: ' + error.message);
+            errorMessage = `${alertIcon} Error al eliminar la propiedad ${formattedId}:\n\n${errorMessage}`;
+        }
+
+        if (typeof App !== 'undefined' && App.showErrorMessage) {
+            App.showErrorMessage(errorMessage);
+        } else {
+            alert(errorMessage);
         }
 
         // Restore buttons on error
