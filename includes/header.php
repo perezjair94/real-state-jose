@@ -50,6 +50,15 @@ $currentAction = $_GET['action'] ?? 'list';
         </div>
 
         <nav class="menu">
+            <!-- Dashboard Link -->
+            <?php
+            $dashboardUrl = hasRole('admin') ? 'admin/dashboard.php' : 'cliente/dashboard.php';
+            $dashboardLabel = hasRole('admin') ? 'Dashboard Admin' : 'Mi Dashboard';
+            ?>
+            <a href="<?= $dashboardUrl ?>" class="dashboard-link" title="Ir al <?= $dashboardLabel ?>">
+                🏠 <?= $dashboardLabel ?>
+            </a>
+
             <?php foreach (MENU_STRUCTURE as $menuItem): ?>
                 <?php if (isset($menuItem['submenu'])): ?>
                     <!-- Menu item with submenu -->
@@ -81,6 +90,20 @@ $currentAction = $_GET['action'] ?? 'list';
                     </a>
                 <?php endif; ?>
             <?php endforeach; ?>
+
+            <!-- User Info and Logout -->
+            <?php $currentUser = getCurrentUser(); ?>
+            <div class="user-menu">
+                <span class="user-info">
+                    👤 <?= htmlspecialchars($currentUser['nombre_completo'] ?? $currentUser['username']) ?>
+                    <?php if (hasRole('admin')): ?>
+                        <span class="user-badge">Admin</span>
+                    <?php endif; ?>
+                </span>
+                <a href="<?= hasRole('admin') ? 'admin/logout.php' : 'cliente/logout.php' ?>" class="logout-link" title="Cerrar Sesión">
+                    🚪 Salir
+                </a>
+            </div>
         </nav>
     </header>
 
