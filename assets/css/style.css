@@ -509,6 +509,7 @@ body {
     width: 100%;
     padding-bottom: 66.66%;
     overflow: hidden;
+    background: #e0e0e0; /* Fondo gris para imágenes sin cargar */
 }
 
 .image-container img {

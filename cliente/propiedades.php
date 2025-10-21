@@ -203,10 +203,14 @@ try {
             width: 100%;
             height: 220px;
             background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .property-content {
@@ -363,7 +367,25 @@ try {
             <div class="properties-grid">
                 <?php foreach ($propiedades as $prop): ?>
                     <div class="property-card">
-                        <div class="property-image">🏠</div>
+                        <div class="property-image">
+                            <?php
+                            // Get property image from JSON or use default based on property rotation
+                            $fotos = json_decode($prop['fotos'] ?? '[]', true);
+
+                            if (!empty($fotos) && isset($fotos[0])) {
+                                // Use uploaded photo
+                                $imageSrc = '../assets/uploads/properties/' . htmlspecialchars($fotos[0]);
+                            } else {
+                                // Use default image based on property rotation
+                                $defaultImages = ['../img/casa1.jpeg', '../img/casa2.jpg', '../img/casa3.jpeg'];
+                                $imageIndex = $prop['id_inmueble'] % count($defaultImages);
+                                $imageSrc = $defaultImages[$imageIndex];
+                            }
+                            ?>
+                            <img src="<?= $imageSrc ?>"
+                                 alt="<?= htmlspecialchars($prop['tipo_inmueble']) ?> en <?= htmlspecialchars($prop['ciudad']) ?>"
+                                 onerror="this.src='../img/casa1.jpeg'">
+                        </div>
                         <div class="property-content">
                             <span class="property-type"><?= htmlspecialchars($prop['tipo_inmueble']) ?></span>
                             <h3 class="property-title"><?= htmlspecialchars($prop['tipo_inmueble']) ?> en <?= htmlspecialchars($prop['ciudad']) ?></h3>
