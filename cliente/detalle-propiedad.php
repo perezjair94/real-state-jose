@@ -409,7 +409,7 @@ if (empty($imagesToShow)) {
 
                 <!-- Main Features -->
                 <div class="property-features">
-                    <?php if ($property['habitaciones']): ?>
+                    <?php if (!empty($property['habitaciones'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">🛏️</div>
                             <div class="feature-content">
@@ -419,7 +419,7 @@ if (empty($imagesToShow)) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($property['banos']): ?>
+                    <?php if (!empty($property['banos'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">🚿</div>
                             <div class="feature-content">
@@ -429,7 +429,7 @@ if (empty($imagesToShow)) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($property['area_construida']): ?>
+                    <?php if (!empty($property['area_construida'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">📐</div>
                             <div class="feature-content">
@@ -439,7 +439,7 @@ if (empty($imagesToShow)) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($property['area_lote']): ?>
+                    <?php if (!empty($property['area_lote'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">🏞️</div>
                             <div class="feature-content">
@@ -449,7 +449,7 @@ if (empty($imagesToShow)) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($property['garaje']): ?>
+                    <?php if (!empty($property['garaje'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">🚗</div>
                             <div class="feature-content">
@@ -459,7 +459,7 @@ if (empty($imagesToShow)) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($property['piscina']): ?>
+                    <?php if (!empty($property['piscina'])): ?>
                         <div class="feature-item">
                             <div class="feature-icon">🏊</div>
                             <div class="feature-content">
@@ -471,7 +471,7 @@ if (empty($imagesToShow)) {
                 </div>
 
                 <!-- Description -->
-                <?php if ($property['descripcion']): ?>
+                <?php if (!empty($property['descripcion'])): ?>
                     <div class="property-description">
                         <h3>Descripción</h3>
                         <p><?= nl2br(htmlspecialchars($property['descripcion'])) ?></p>
@@ -495,7 +495,7 @@ if (empty($imagesToShow)) {
                         <p><?= htmlspecialchars($property['tipo_inmueble']) ?></p>
                     </div>
 
-                    <?php if ($property['ano_construccion']): ?>
+                    <?php if (!empty($property['ano_construccion'])): ?>
                         <div class="detail-box">
                             <h4>Año de Construcción</h4>
                             <p><?= htmlspecialchars($property['ano_construccion']) ?></p>
