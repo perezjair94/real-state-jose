@@ -133,8 +133,9 @@ define('PROPERTY_TYPES', [
 // Property Status
 define('PROPERTY_STATUS', [
     'Disponible' => 'Disponible',
-    'Vendido' => 'Vendido',
-    'Arrendado' => 'Arrendado'
+    'Reservado' => 'Reservado',
+    'Arrendado' => 'Arrendado',
+    'Vendido' => 'Vendido'
 ]);
 
 // Client Types

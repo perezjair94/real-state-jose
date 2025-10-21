@@ -274,7 +274,20 @@ try {
                             <i class="fa fa-camera"></i> <?= count($fotos) ?>
                         </span>
                     <?php endif; ?>
-                    <span class="tag <?= $property['estado'] === 'Vendido' ? 'tag-compra' : 'tag-renta' ?>">
+                    <?php
+                    // Determine tag class based on property status
+                    $tagClass = 'tag-renta'; // Default for available/rental
+                    if ($property['estado'] === 'Vendido') {
+                        $tagClass = 'tag-compra';
+                    } elseif ($property['estado'] === 'Arrendado') {
+                        $tagClass = 'tag-renta';
+                    } elseif ($property['estado'] === 'Disponible') {
+                        $tagClass = 'tag-disponible';
+                    } elseif ($property['estado'] === 'Reservado') {
+                        $tagClass = 'tag-reservado';
+                    }
+                    ?>
+                    <span class="tag <?= $tagClass ?>">
                         <?= htmlspecialchars(strtoupper($property['estado'])) ?>
                     </span>
                 </div>

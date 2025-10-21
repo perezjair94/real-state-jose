@@ -534,11 +534,19 @@ body {
 }
 
 .tag-compra {
-    background-color: #e94545;
+    background-color: #e94545; /* Red for sold properties */
 }
 
 .tag-renta {
-    background-color: #5cb85c;
+    background-color: #5cb85c; /* Green for rented properties */
+}
+
+.tag-disponible {
+    background-color: #0066cc; /* Blue for available properties */
+}
+
+.tag-reservado {
+    background-color: #ff9800; /* Orange for reserved properties */
 }
 
 .card-body {
