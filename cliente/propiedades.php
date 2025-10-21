@@ -370,9 +370,15 @@ try {
                         <div class="property-image">
                             <?php
                             // Get property image from JSON or use default based on property rotation
-                            $fotos = json_decode($prop['fotos'] ?? '[]', true);
+                            $fotos = null;
 
-                            if (!empty($fotos) && isset($fotos[0])) {
+                            // Safely decode JSON photos
+                            if (!empty($prop['fotos']) && $prop['fotos'] !== 'null') {
+                                $fotos = json_decode($prop['fotos'], true);
+                            }
+
+                            // Determine image source
+                            if (is_array($fotos) && !empty($fotos) && isset($fotos[0]) && !empty($fotos[0])) {
                                 // Use uploaded photo
                                 $imageSrc = '../assets/uploads/properties/' . htmlspecialchars($fotos[0]);
                             } else {

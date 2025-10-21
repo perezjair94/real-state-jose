@@ -251,16 +251,22 @@ try {
             <div class="property-card">
                 <div class="image-container">
                     <?php
-                    // Get property image from JSON or use default based on property type
-                    $fotos = json_decode($property['fotos'] ?? '[]', true);
+                    // Get property image from JSON or use default based on property rotation
+                    $fotos = null;
                     $hasCustomPhoto = false;
 
-                    if (!empty($fotos) && isset($fotos[0])) {
+                    // Safely decode JSON photos
+                    if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
+                        $fotos = json_decode($property['fotos'], true);
+                    }
+
+                    // Determine image source
+                    if (is_array($fotos) && !empty($fotos) && isset($fotos[0]) && !empty($fotos[0])) {
                         // Use uploaded photo
                         $imageSrc = 'assets/uploads/properties/' . htmlspecialchars($fotos[0]);
                         $hasCustomPhoto = true;
                     } else {
-                        // Use default image based on property type or rotation
+                        // Use default image based on property rotation
                         $defaultImages = ['img/casa1.jpeg', 'img/casa2.jpg', 'img/casa3.jpeg'];
                         $imageIndex = $property['id_inmueble'] % count($defaultImages);
                         $imageSrc = $defaultImages[$imageIndex];
