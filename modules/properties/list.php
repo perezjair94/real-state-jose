@@ -251,36 +251,37 @@ try {
             <div class="property-card">
                 <div class="image-container">
                     <?php
-                    // Get property image from JSON or use default based on property rotation
+                    // Get property images from JSON or use default based on property rotation
                     $fotos = null;
                     $hasCustomPhoto = false;
+                    $allImages = [];
 
                     // Safely decode JSON photos
                     if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
                         $fotos = json_decode($property['fotos'], true);
                     }
 
-                    // Determine image source
-                    if (is_array($fotos) && !empty($fotos) && isset($fotos[0]) && !empty($fotos[0])) {
-                        // Use uploaded photo
-                        $imageSrc = 'assets/uploads/properties/' . htmlspecialchars($fotos[0]);
-                        $hasCustomPhoto = true;
-                    } else {
-                        // Use default image based on property rotation
-                        $defaultImages = ['img/casa1.jpeg', 'img/casa2.jpg', 'img/casa3.jpeg'];
-                        $imageIndex = $property['id_inmueble'] % count($defaultImages);
-                        $imageSrc = $defaultImages[$imageIndex];
+                    // Build images array
+                    if (is_array($fotos) && !empty($fotos)) {
+                        foreach ($fotos as $foto) {
+                            if (!empty($foto)) {
+                                $allImages[] = BASE_URL . 'assets/uploads/properties/' . htmlspecialchars($foto);
+                            }
+                        }
+                        $hasCustomPhoto = !empty($allImages);
                     }
-                    ?>
-                    <img src="<?= $imageSrc ?>"
-                         alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
-                         onerror="this.src='img/casa1.jpeg'">
-                    <?php if ($hasCustomPhoto && count($fotos) > 1): ?>
-                        <span class="photo-count">
-                            <i class="fa fa-camera"></i> <?= count($fotos) ?>
-                        </span>
-                    <?php endif; ?>
-                    <?php
+
+                    // If no custom photos, use default images
+                    if (empty($allImages)) {
+                        $defaultImages = [
+                            BASE_URL . 'img/casa1.jpeg',
+                            BASE_URL . 'img/casa2.jpg',
+                            BASE_URL . 'img/casa3.jpeg'
+                        ];
+                        $imageIndex = $property['id_inmueble'] % count($defaultImages);
+                        $allImages[] = $defaultImages[$imageIndex];
+                    }
+
                     // Determine tag class based on property status
                     $tagClass = 'tag-disponible'; // Default for available
                     if ($property['estado'] === 'Vendido') {
@@ -291,6 +292,43 @@ try {
                         $tagClass = 'tag-disponible';
                     }
                     ?>
+
+                    <!-- Image Slider -->
+                    <div class="property-slider" data-property-id="<?= $property['id_inmueble'] ?>" data-current-index="0">
+                        <div class="slider-images">
+                            <?php foreach ($allImages as $index => $imageSrc): ?>
+                                <img src="<?= $imageSrc ?>"
+                                     alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
+                                     class="slider-image"
+                                     onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+                            <?php endforeach; ?>
+                        </div>
+
+                        <?php if (count($allImages) > 1): ?>
+                            <!-- Navigation Arrows -->
+                            <button class="slider-nav slider-prev" onclick="changeSlide(<?= $property['id_inmueble'] ?>, -1)" type="button">
+                                ‹
+                            </button>
+                            <button class="slider-nav slider-next" onclick="changeSlide(<?= $property['id_inmueble'] ?>, 1)" type="button">
+                                ›
+                            </button>
+
+                            <!-- Dots Indicator -->
+                            <div class="slider-dots">
+                                <?php for ($i = 0; $i < count($allImages); $i++): ?>
+                                    <span class="slider-dot <?= $i === 0 ? 'active' : '' ?>"
+                                          onclick="goToSlide(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></span>
+                                <?php endfor; ?>
+                            </div>
+
+                            <!-- Photo Counter -->
+                            <span class="photo-count">
+                                <i class="fa fa-camera"></i>
+                                <span class="current-photo">1</span> / <?= count($allImages) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
                     <span class="tag <?= $tagClass ?>">
                         <?= htmlspecialchars(strtoupper($property['estado'])) ?>
                     </span>
@@ -346,6 +384,7 @@ try {
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Imagen</th>
                         <th>ID</th>
                         <th>Tipo</th>
                         <th>Dirección</th>
@@ -361,7 +400,70 @@ try {
                 </thead>
                 <tbody>
                     <?php foreach ($properties as $property): ?>
+                        <?php
+                        // Prepare images for table row
+                        $fotos_table = null;
+                        $allImages_table = [];
+
+                        if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
+                            $fotos_table = json_decode($property['fotos'], true);
+                        }
+
+                        if (is_array($fotos_table) && !empty($fotos_table)) {
+                            foreach ($fotos_table as $foto) {
+                                if (!empty($foto)) {
+                                    $allImages_table[] = BASE_URL . 'assets/uploads/properties/' . htmlspecialchars($foto);
+                                }
+                            }
+                        }
+
+                        if (empty($allImages_table)) {
+                            $defaultImages = [
+                                BASE_URL . 'img/casa1.jpeg',
+                                BASE_URL . 'img/casa2.jpg',
+                                BASE_URL . 'img/casa3.jpeg'
+                            ];
+                            $imageIndex = $property['id_inmueble'] % count($defaultImages);
+                            $allImages_table[] = $defaultImages[$imageIndex];
+                        }
+                        ?>
                         <tr>
+                            <td class="table-image-cell">
+                                <div class="table-image-container">
+                                    <div class="table-slider" data-property-id="table-<?= $property['id_inmueble'] ?>" data-current-index="0">
+                                        <div class="table-slider-images">
+                                            <?php foreach ($allImages_table as $index => $imageSrc): ?>
+                                                <img src="<?= $imageSrc ?>"
+                                                     alt="Propiedad <?= $property['id_inmueble'] ?>"
+                                                     class="table-slider-image"
+                                                     onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+                                            <?php endforeach; ?>
+                                        </div>
+
+                                        <?php if (count($allImages_table) > 1): ?>
+                                            <button class="table-slider-nav table-slider-prev"
+                                                    onclick="changeSlide('table-<?= $property['id_inmueble'] ?>', -1)" type="button">
+                                                ‹
+                                            </button>
+                                            <button class="table-slider-nav table-slider-next"
+                                                    onclick="changeSlide('table-<?= $property['id_inmueble'] ?>', 1)" type="button">
+                                                ›
+                                            </button>
+
+                                            <div class="table-slider-dots">
+                                                <?php for ($i = 0; $i < count($allImages_table); $i++): ?>
+                                                    <span class="table-slider-dot <?= $i === 0 ? 'active' : '' ?>"
+                                                          onclick="goToSlide('table-<?= $property['id_inmueble'] ?>', <?= $i ?>)"></span>
+                                                <?php endfor; ?>
+                                            </div>
+
+                                            <span class="table-photo-count">
+                                                <span class="current-photo">1</span>/<?= count($allImages_table) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </td>
                             <td>
                                 <strong class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
                             </td>
@@ -475,7 +577,7 @@ try {
     </div>
 <?php endif; ?>
 
-<!-- JavaScript for view toggle -->
+<!-- JavaScript for view toggle and image slider -->
 <script>
 function toggleView(view) {
     const cardsView = document.getElementById('cards-view');
@@ -510,10 +612,154 @@ function toggleView(view) {
     }
 }
 
+// Image Slider Functions - Horizontal Slide Effect
+function changeSlide(propertyId, direction) {
+    const slider = document.querySelector(`[data-property-id="${propertyId}"]`);
+    if (!slider) return;
+
+    const sliderImages = slider.querySelector('.slider-images') || slider.querySelector('.table-slider-images');
+    const dots = slider.querySelectorAll('.slider-dot, .table-slider-dot');
+    const photoCounter = slider.querySelector('.current-photo');
+
+    if (!sliderImages) return;
+
+    // Get or initialize current index
+    if (!slider.dataset.currentIndex) {
+        slider.dataset.currentIndex = '0';
+    }
+
+    let currentIndex = parseInt(slider.dataset.currentIndex);
+    const totalImages = sliderImages.children.length;
+
+    // Calculate new index
+    currentIndex += direction;
+
+    // Wrap around
+    if (currentIndex >= totalImages) {
+        currentIndex = 0;
+    } else if (currentIndex < 0) {
+        currentIndex = totalImages - 1;
+    }
+
+    // Apply transform to slide
+    const translateX = -currentIndex * 100;
+    sliderImages.style.transform = `translateX(${translateX}%)`;
+
+    // Update dots
+    dots.forEach((dot, index) => {
+        if (index === currentIndex) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+
+    // Update photo counter
+    if (photoCounter) {
+        photoCounter.textContent = currentIndex + 1;
+    }
+
+    // Store current index
+    slider.dataset.currentIndex = currentIndex;
+}
+
+function goToSlide(propertyId, slideIndex) {
+    const slider = document.querySelector(`[data-property-id="${propertyId}"]`);
+    if (!slider) return;
+
+    const sliderImages = slider.querySelector('.slider-images') || slider.querySelector('.table-slider-images');
+    const dots = slider.querySelectorAll('.slider-dot, .table-slider-dot');
+    const photoCounter = slider.querySelector('.current-photo');
+
+    if (!sliderImages) return;
+
+    // Apply transform to slide
+    const translateX = -slideIndex * 100;
+    sliderImages.style.transform = `translateX(${translateX}%)`;
+
+    // Update dots
+    dots.forEach((dot, index) => {
+        if (index === slideIndex) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+
+    // Update photo counter
+    if (photoCounter) {
+        photoCounter.textContent = slideIndex + 1;
+    }
+
+    // Store current index
+    slider.dataset.currentIndex = slideIndex;
+}
+
+// Optional: Auto-advance slider every 5 seconds
+function startAutoSlide() {
+    const sliders = document.querySelectorAll('.property-slider');
+    sliders.forEach(slider => {
+        const propertyId = slider.getAttribute('data-property-id');
+        const images = slider.querySelectorAll('.slider-image');
+
+        // Only auto-advance if there are multiple images
+        if (images.length > 1) {
+            setInterval(() => {
+                // Only auto-advance if user is not hovering over the card
+                const card = slider.closest('.property-card');
+                if (card && !card.matches(':hover')) {
+                    changeSlide(propertyId, 1);
+                }
+            }, 5000);
+        }
+    });
+}
+
+// Touch/Swipe Support for Mobile
+function initSwipeSupport() {
+    const sliders = document.querySelectorAll('.property-slider, .table-slider');
+
+    sliders.forEach(slider => {
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        slider.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        slider.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe(slider);
+        }, { passive: true });
+
+        function handleSwipe(sliderElement) {
+            const swipeThreshold = 50; // Minimum distance for swipe
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                const propertyId = sliderElement.dataset.propertyId;
+                if (diff > 0) {
+                    // Swiped left - next image
+                    changeSlide(propertyId, 1);
+                } else {
+                    // Swiped right - previous image
+                    changeSlide(propertyId, -1);
+                }
+            }
+        }
+    });
+}
+
 // Load saved view preference
 document.addEventListener('DOMContentLoaded', function() {
     const savedView = localStorage.getItem('propertyView') || 'table';
     toggleView(savedView);
+
+    // Initialize swipe support for touch devices
+    initSwipeSupport();
+
+    // Uncomment the next line if you want auto-sliding
+    // startAutoSlide();
 });
 </script>
 
@@ -643,24 +889,309 @@ document.addEventListener('DOMContentLoaded', function() {
     text-align: center;
 }
 
-.photo-count {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
 .module-description {
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
     margin-top: var(--spacing-xs);
+}
+
+/* ========================================
+   IMAGE SLIDER STYLES - HORIZONTAL SLIDE
+   ======================================== */
+/* Override image-container default styles for slider */
+.property-card .image-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 66.66%;
+    overflow: hidden;
+    background: #e0e0e0;
+}
+
+.property-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.slider-images {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+    overflow: hidden; /* Moved overflow hidden here to clip images but allow arrows */
+}
+
+.slider-image {
+    min-width: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Navigation Arrows - Always Visible */
+.slider-nav {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    color: white !important;
+    border: 2px solid rgba(255, 255, 255, 0.8) !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    z-index: 20 !important;
+    opacity: 0.9 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    font-size: 28px !important;
+    font-weight: bold !important;
+}
+
+.property-card:hover .slider-nav {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.slider-nav:hover {
+    background: rgba(0, 222, 85, 0.95);
+    border-color: #00de55;
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 222, 85, 0.5);
+}
+
+.slider-nav:active {
+    transform: translateY(-50%) scale(1);
+}
+
+.slider-prev {
+    left: 10px !important;
+}
+
+.slider-next {
+    right: 10px !important;
+}
+
+/* Hide arrows when only one image */
+.property-slider[data-single-image="true"] .slider-nav {
+    display: none !important;
+}
+
+/* Dots Indicator */
+.slider-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slider-dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.2);
+}
+
+.slider-dot.active {
+    background: #00de55;
+    border-color: #00de55;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* Photo Counter */
+.photo-count {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+    font-weight: 600;
+}
+
+.photo-count i {
+    font-size: 12px;
+}
+
+/* Status Tag Over Slider */
+.property-card .image-container .tag {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    padding: 6px 15px;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    z-index: 20;
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   TABLE IMAGE SLIDER STYLES - HORIZONTAL SLIDE
+   ======================================== */
+.table-image-cell {
+    width: 120px;
+    padding: 8px !important;
+}
+
+.table-image-container {
+    position: relative;
+    width: 100px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #e0e0e0;
+}
+
+.table-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.table-slider-images {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.4s ease-in-out;
+    overflow: hidden; /* Moved overflow hidden here */
+}
+
+.table-slider-image {
+    min-width: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Table Navigation Arrows - Always Visible */
+.table-slider-nav {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    z-index: 20 !important;
+    opacity: 0.9 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+.table-image-container:hover .table-slider-nav {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.table-slider-nav:hover {
+    background: rgba(0, 222, 85, 0.95);
+    border-color: #00de55;
+    transform: translateY(-50%) scale(1.2);
+    box-shadow: 0 3px 8px rgba(0, 222, 85, 0.5);
+}
+
+.table-slider-prev {
+    left: 4px !important;
+}
+
+.table-slider-next {
+    right: 4px !important;
+}
+
+/* Table Dots Indicator */
+.table-slider-dots {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 3px;
+    z-index: 10;
+}
+
+.table-slider-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.table-slider-dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.3);
+}
+
+.table-slider-dot.active {
+    background: #00de55;
+    border-color: #00de55;
+    width: 14px;
+    border-radius: 3px;
+}
+
+/* Table Photo Counter */
+.table-photo-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 9px;
+    z-index: 10;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .action-buttons {
@@ -797,6 +1328,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .property-address {
         max-width: 150px;
+    }
+
+    /* Smaller table images on mobile */
+    .table-image-container {
+        width: 80px;
+        height: 60px;
+    }
+
+    .table-image-cell {
+        width: 100px;
     }
 }
 </style>

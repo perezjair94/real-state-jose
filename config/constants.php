@@ -43,7 +43,12 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Application URLs (adjust for your environment)
-define('BASE_URL', 'http://localhost/real-estate-system/');
+// Auto-detect BASE_URL or use default
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+$baseUrl = $protocol . $host . rtrim($scriptPath, '/') . '/';
+define('BASE_URL', $baseUrl);
 define('ASSETS_URL', BASE_URL . 'assets/');
 define('UPLOADS_URL', BASE_URL . 'assets/uploads/');
 
