@@ -227,6 +227,13 @@ try {
                                     Editar
                                 </a>
                             <?php endif; ?>
+                            <?php if (in_array($contract['estado'], ['Borrador', 'Cancelado'])): ?>
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        onclick="deleteContract(<?= $contract['id_contrato'] ?>, 'CON<?= str_pad($contract['id_contrato'], 3, '0', STR_PAD_LEFT) ?>')"
+                                        title="Eliminar contrato">
+                                    Eliminar
+                                </button>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -307,3 +314,64 @@ try {
     color: #721c24;
 }
 </style>
+
+<script>
+/**
+ * Delete contract with confirmation
+ */
+function deleteContract(contractId, contractCode) {
+    if (!contractId || contractId <= 0) {
+        alert('ID de contrato inválido');
+        return;
+    }
+
+    // Confirm deletion
+    const confirmMessage = `¿Está seguro que desea eliminar el contrato ${contractCode}?\n\nEsta acción no se puede deshacer.`;
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    // Show loading state
+    const deleteButton = event.target;
+    const originalText = deleteButton.textContent;
+    deleteButton.disabled = true;
+    deleteButton.textContent = 'Eliminando...';
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('id', contractId);
+
+    // Send AJAX request
+    fetch('?module=contracts&action=ajax', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert(data.message || 'Contrato eliminado exitosamente');
+
+            // Reload page to refresh the list
+            window.location.reload();
+        } else {
+            // Show error message
+            alert('Error: ' + (data.message || 'No se pudo eliminar el contrato'));
+
+            // Restore button state
+            deleteButton.disabled = false;
+            deleteButton.textContent = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting contract:', error);
+        alert('Error de conexión al eliminar el contrato. Por favor, intente nuevamente.');
+
+        // Restore button state
+        deleteButton.disabled = false;
+        deleteButton.textContent = originalText;
+    });
+}
+</script>

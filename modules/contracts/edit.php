@@ -97,8 +97,12 @@ if ($contractId <= 0) {
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $contract) {
     try {
-        // Get form data
-        $formData = [
+        // Verify CSRF token
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            $error = "Token de seguridad inválido. Intente nuevamente.";
+        } else {
+            // Get form data
+            $formData = [
             'tipo_contrato' => $_POST['tipo_contrato'] ?? '',
             'fecha_inicio' => trim($_POST['fecha_inicio'] ?? ''),
             'fecha_fin' => trim($_POST['fecha_fin'] ?? ''),
@@ -191,6 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $contract) {
                 $error = "Error al actualizar el contrato. Intente nuevamente.";
             }
         }
+        } // End of CSRF verification else block
 
     } catch (PDOException $e) {
         error_log("Error updating contract: " . $e->getMessage());
@@ -274,6 +279,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $contract) {
         <h3>Modificar Información del Contrato</h3>
 
         <form method="POST" id="contractEditForm" class="form-horizontal">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
 
             <!-- Contract Type Section -->
             <fieldset>

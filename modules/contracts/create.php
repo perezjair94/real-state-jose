@@ -60,10 +60,15 @@ try {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitize input data
-    $formData = array_map('sanitizeInput', $_POST);
+    // Verify CSRF token
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = "Token de seguridad inválido. Intente nuevamente.";
+        $errors['csrf'] = $error;
+    } else {
+        // Sanitize input data
+        $formData = array_map('sanitizeInput', $_POST);
 
-    // Basic validation
+        // Basic validation
     if (empty($formData['tipo_contrato'])) {
         $errors['tipo_contrato'] = 'El tipo de contrato es obligatorio';
     }
@@ -152,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['general'] = $e->getMessage();
         }
     }
+    } // End of CSRF verification else block
 }
 ?>
 
