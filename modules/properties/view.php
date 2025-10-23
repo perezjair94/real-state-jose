@@ -239,10 +239,10 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                 // Check if it's a custom uploaded photo or a default image
                 if (strpos($photo, 'img/') === 0 || strpos($photo, 'casa') !== false) {
                     // Default image from img/ folder
-                    $photoSrc = (strpos($photo, 'img/') === 0) ? $photo : 'img/' . $photo;
+                    $photoSrc = (strpos($photo, 'img/') === 0) ? BASE_URL . $photo : BASE_URL . 'img/' . $photo;
                 } else {
                     // Custom uploaded photo
-                    $photoSrc = 'assets/uploads/properties/' . $photo;
+                    $photoSrc = BASE_URL . 'assets/uploads/properties/' . $photo;
                 }
                 ?>
                 <div class="photo-item" data-photo-index="<?= $index ?>">
@@ -251,7 +251,7 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                         alt="Foto de la propiedad <?= $index + 1 ?>"
                         onclick="openPhotoModal(<?= $index ?>)"
                         loading="lazy"
-                        onerror="this.src='img/casa1.jpeg'"
+                        onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'"
                     >
                     <div class="photo-overlay">
                         <span class="photo-number"><?= $index + 1 ?></span>
@@ -513,10 +513,11 @@ function openPhotoModal(index) {
 
     // Helper function to get the correct photo path
     function getPhotoPath(photo) {
+        const baseUrl = '<?= BASE_URL ?>';
         if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
-            return photo.indexOf('img/') === 0 ? photo : 'img/' + photo;
+            return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
         } else {
-            return 'assets/uploads/properties/' + photo;
+            return baseUrl + 'assets/uploads/properties/' + photo;
         }
     }
 
@@ -525,7 +526,7 @@ function openPhotoModal(index) {
     modal.innerHTML = `
         <div class="photo-modal-content">
             <button class="photo-modal-close" onclick="this.closest('.photo-modal').remove()">&times;</button>
-            <img src="${getPhotoPath(photos[index])}" alt="Foto de la propiedad" onerror="this.src='img/casa1.jpeg'">
+            <img src="${getPhotoPath(photos[index])}" alt="Foto de la propiedad" onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
             <div class="photo-modal-nav">
                 <button onclick="changePhoto(-1)" ${index === 0 ? 'disabled' : ''}>‹ Anterior</button>
                 <span>${index + 1} de ${photos.length}</span>
@@ -554,10 +555,11 @@ function changePhoto(direction) {
 
     // Helper function to get the correct photo path
     function getPhotoPath(photo) {
+        const baseUrl = '<?= BASE_URL ?>';
         if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
-            return photo.indexOf('img/') === 0 ? photo : 'img/' + photo;
+            return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
         } else {
-            return 'assets/uploads/properties/' + photo;
+            return baseUrl + 'assets/uploads/properties/' + photo;
         }
     }
 
