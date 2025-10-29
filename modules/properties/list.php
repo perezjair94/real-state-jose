@@ -301,40 +301,19 @@ try {
                     }
                     ?>
 
-                    <!-- Image Slider -->
-                    <div class="property-slider" data-property-id="<?= $property['id_inmueble'] ?>" data-current-index="0">
-                        <div class="slider-images">
-                            <?php foreach ($allImages as $index => $imageSrc): ?>
+                    <!-- Image Gallery (Grid Layout) -->
+                    <div class="property-gallery" data-property-id="<?= $property['id_inmueble'] ?>">
+                        <?php foreach ($allImages as $index => $imageSrc): ?>
+                            <div class="gallery-item">
                                 <img src="<?= htmlspecialchars($imageSrc) ?>"
                                      alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
-                                     class="slider-image"
+                                     loading="lazy"
                                      onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
-                            <?php endforeach; ?>
-                        </div>
-
-                        <?php if (count($allImages) > 1): ?>
-                            <!-- Navigation Arrows -->
-                            <button class="slider-nav slider-prev" onclick="changeSlide(<?= $property['id_inmueble'] ?>, -1)" type="button">
-                                ‹
-                            </button>
-                            <button class="slider-nav slider-next" onclick="changeSlide(<?= $property['id_inmueble'] ?>, 1)" type="button">
-                                ›
-                            </button>
-
-                            <!-- Dots Indicator -->
-                            <div class="slider-dots">
-                                <?php for ($i = 0; $i < count($allImages); $i++): ?>
-                                    <span class="slider-dot <?= $i === 0 ? 'active' : '' ?>"
-                                          onclick="goToSlide(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></span>
-                                <?php endfor; ?>
+                                <div class="gallery-overlay">
+                                    <span class="photo-number"><?= $index + 1 ?></span>
+                                </div>
                             </div>
-
-                            <!-- Photo Counter -->
-                            <span class="photo-count">
-                                <i class="fa fa-camera"></i>
-                                <span class="current-photo">1</span> / <?= count($allImages) ?>
-                            </span>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
 
                     <span class="tag <?= $tagClass ?>">
@@ -915,162 +894,93 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* ========================================
-   IMAGE SLIDER STYLES - HORIZONTAL SLIDE
+   IMAGE GALLERY STYLES - GRID LAYOUT
    ======================================== */
-/* Override image-container default styles for slider */
 .property-card .image-container {
     position: relative;
     width: 100%;
     padding-bottom: 66.66%;
-    overflow: hidden;
+    overflow: visible;
     background: #e0e0e0;
 }
 
-.property-slider {
+/* Property Gallery Grid */
+.property-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    width: 100%;
+    height: auto;
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+    right: 0;
 }
 
-.slider-images {
-    display: flex;
+/* Gallery Item Styling */
+.gallery-item {
+    position: relative;
     width: 100%;
-    height: 100%;
-    transition: transform 0.5s ease-in-out;
+    aspect-ratio: 1;
     overflow: hidden;
-    flex-wrap: nowrap;
-    /* Fix: ensure container is wide enough for all images */
-    flex-basis: 100%;
+    border-radius: 6px;
+    background: #e0e0e0;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.slider-image {
-    min-width: 100%;
+.gallery-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    flex-shrink: 0;
-    display: block; /* Ensure images display as block elements */
+    display: block;
+    transition: transform 0.3s ease;
 }
 
-/* Navigation Arrows - Always Visible */
-.slider-nav {
-    position: absolute !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-    color: white !important;
-    border: 2px solid rgba(255, 255, 255, 0.8) !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.3s ease !important;
-    z-index: 20 !important;
-    opacity: 0.9 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    line-height: 1 !important;
-    font-size: 28px !important;
-    font-weight: bold !important;
+.gallery-item:hover img {
+    transform: scale(1.08);
 }
 
-.property-card:hover .slider-nav {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.05);
-}
-
-.slider-nav:hover {
-    background: rgba(0, 222, 85, 0.95);
-    border-color: #00de55;
-    transform: translateY(-50%) scale(1.15);
-    box-shadow: 0 4px 12px rgba(0, 222, 85, 0.5);
-}
-
-.slider-nav:active {
-    transform: translateY(-50%) scale(1);
-}
-
-.slider-prev {
-    left: 10px !important;
-}
-
-.slider-next {
-    right: 10px !important;
-}
-
-/* Hide arrows when only one image */
-.property-slider[data-single-image="true"] .slider-nav {
-    display: none !important;
-}
-
-/* Dots Indicator */
-.slider-dots {
+/* Gallery Overlay */
+.gallery-overlay {
     position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
-    z-index: 10;
-}
-
-.slider-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.slider-dot:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: scale(1.2);
-}
-
-.slider-dot.active {
-    background: #00de55;
-    border-color: #00de55;
-    width: 24px;
-    border-radius: 4px;
-}
-
-/* Photo Counter */
-.photo-count {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
-    gap: 4px;
-    z-index: 10;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+/* Photo Number Display */
+.photo-number {
+    background: rgba(0, 222, 85, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
     font-weight: 600;
+    font-size: 14px;
 }
 
-.photo-count i {
-    font-size: 12px;
-}
-
-/* Status Tag Over Slider */
+/* Status Tag Over Gallery */
 .property-card .image-container .tag {
     position: absolute;
     top: 15px;
-    left: 0;
+    left: 15px;
     padding: 6px 15px;
     color: white;
     font-weight: 600;
