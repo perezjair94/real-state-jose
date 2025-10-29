@@ -301,19 +301,31 @@ try {
                     }
                     ?>
 
-                    <!-- Image Gallery (Grid Layout) -->
-                    <div class="property-gallery" data-property-id="<?= $property['id_inmueble'] ?>">
-                        <?php foreach ($allImages as $index => $imageSrc): ?>
-                            <div class="gallery-item">
-                                <img src="<?= htmlspecialchars($imageSrc) ?>"
-                                     alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
-                                     loading="lazy"
-                                     onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
-                                <div class="gallery-overlay">
-                                    <span class="photo-number"><?= $index + 1 ?></span>
-                                </div>
+                    <!-- Image Carousel (Simple Slider) -->
+                    <div class="carousel" data-property-id="<?= $property['id_inmueble'] ?>">
+                        <div class="carousel-wrapper">
+                            <div class="carousel-track" style="transform: translateX(0%);">
+                                <?php foreach ($allImages as $index => $imageSrc): ?>
+                                    <div class="carousel-slide">
+                                        <img src="<?= htmlspecialchars($imageSrc) ?>"
+                                             alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
+                                             loading="lazy"
+                                             onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                        <?php endforeach; ?>
+                        </div>
+
+                        <?php if (count($allImages) > 1): ?>
+                            <button class="carousel-btn carousel-prev" onclick="moveCarousel(<?= $property['id_inmueble'] ?>, -1)" type="button">❮</button>
+                            <button class="carousel-btn carousel-next" onclick="moveCarousel(<?= $property['id_inmueble'] ?>, 1)" type="button">❯</button>
+
+                            <div class="carousel-dots">
+                                <?php for ($i = 0; $i < count($allImages); $i++): ?>
+                                    <span class="dot <?= $i === 0 ? 'active' : '' ?>" onclick="goToSlide(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></span>
+                                <?php endfor; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <span class="tag <?= $tagClass ?>">
@@ -607,7 +619,67 @@ function toggleView(view) {
     }
 }
 
-// Image Slider Functions - Horizontal Slide Effect
+// Carousel Navigation Functions
+function moveCarousel(propertyId, direction) {
+    const carousel = document.querySelector(`[data-property-id="${propertyId}"]`);
+    if (!carousel) return;
+
+    const track = carousel.querySelector('.carousel-track');
+    const slides = carousel.querySelectorAll('.carousel-slide');
+    const dots = carousel.querySelectorAll('.dot');
+
+    if (!track || slides.length === 0) return;
+
+    // Get current index from data attribute
+    let currentIndex = parseInt(carousel.dataset.carouselIndex) || 0;
+
+    // Calculate new index
+    currentIndex += direction;
+
+    // Wrap around
+    if (currentIndex >= slides.length) {
+        currentIndex = 0;
+    } else if (currentIndex < 0) {
+        currentIndex = slides.length - 1;
+    }
+
+    // Update transform
+    const translateX = -currentIndex * 100;
+    track.style.transform = `translateX(${translateX}%)`;
+
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentIndex);
+    });
+
+    // Store current index
+    carousel.dataset.carouselIndex = currentIndex;
+}
+
+function goToSlide(propertyId, slideIndex) {
+    const carousel = document.querySelector(`[data-property-id="${propertyId}"]`);
+    if (!carousel) return;
+
+    const track = carousel.querySelector('.carousel-track');
+    const slides = carousel.querySelectorAll('.carousel-slide');
+    const dots = carousel.querySelectorAll('.dot');
+
+    if (!track || !slides[slideIndex]) return;
+
+    // Update transform
+    const translateX = -slideIndex * 100;
+    track.style.transform = `translateX(${translateX}%)`;
+
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === slideIndex);
+    });
+
+    // Store current index
+    carousel.dataset.carouselIndex = slideIndex;
+}
+
+// Image Slider Functions - Horizontal Slide Effect (Table)
 function changeSlide(propertyId, direction) {
     const slider = document.querySelector(`[data-property-id="${propertyId}"]`);
     if (!slider) return;
@@ -894,93 +966,126 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* ========================================
-   IMAGE GALLERY STYLES - GRID LAYOUT
+   IMAGE CAROUSEL STYLES
    ======================================== */
 .property-card .image-container {
     position: relative;
     width: 100%;
     padding-bottom: 66.66%;
-    overflow: visible;
+    overflow: hidden;
     background: #e0e0e0;
 }
 
-/* Property Gallery Grid */
-.property-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 8px;
-    padding: 12px;
-    width: 100%;
-    height: auto;
+.carousel {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
-/* Gallery Item Styling */
-.gallery-item {
+.carousel-wrapper {
     position: relative;
     width: 100%;
-    aspect-ratio: 1;
+    height: 100%;
     overflow: hidden;
-    border-radius: 6px;
-    background: #e0e0e0;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.gallery-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.carousel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.4s ease-in-out;
 }
 
-.gallery-item img {
+.carousel-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+}
+
+.carousel-slide img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.3s ease;
 }
 
-.gallery-item:hover img {
-    transform: scale(1.08);
-}
-
-/* Gallery Overlay */
-.gallery-overlay {
+/* Carousel Navigation Buttons */
+.carousel-btn {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
-.gallery-item:hover .gallery-overlay {
-    opacity: 1;
+.carousel-btn:hover {
+    background: rgba(0, 222, 85, 0.95);
+    border-color: #00de55;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 222, 85, 0.5);
 }
 
-/* Photo Number Display */
-.photo-number {
-    background: rgba(0, 222, 85, 0.9);
-    color: white;
-    padding: 6px 12px;
+.carousel-prev {
+    left: 10px;
+}
+
+.carousel-next {
+    right: 10px;
+}
+
+/* Carousel Dots */
+.carousel-dots {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.2);
+}
+
+.dot.active {
+    background: #00de55;
+    border-color: #00de55;
+    width: 24px;
     border-radius: 4px;
-    font-weight: 600;
-    font-size: 14px;
 }
 
-/* Status Tag Over Gallery */
+/* Status Tag */
 .property-card .image-container .tag {
     position: absolute;
     top: 15px;
-    left: 15px;
+    left: 0;
     padding: 6px 15px;
     color: white;
     font-weight: 600;
