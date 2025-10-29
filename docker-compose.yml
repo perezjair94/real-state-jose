@@ -1,0 +1,79 @@
+services:
+  # PHP + Apache Web Server
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: real-estate-web
+    ports:
+      - "8080:80"
+    environment:
+      - APACHE_SERVER_NAME=localhost
+      - PHP_ENV=development
+      # Database connection variables
+      - MYSQL_HOST=database
+      - MYSQL_DATABASE=real_estate_db
+      - MYSQL_USER=real_estate_user
+      - MYSQL_PASSWORD=real_estate_pass
+      - MYSQL_PORT=3306
+    volumes:
+      - ./:/var/www/html
+      - ./logs:/var/www/html/logs
+      - ./assets/uploads:/var/www/html/assets/uploads
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - real-estate-network
+    restart: unless-stopped
+
+  # MySQL Database
+  database:
+    image: mysql:8.0
+    container_name: real-estate-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: real_estate_db
+      MYSQL_USER: real_estate_user
+      MYSQL_PASSWORD: real_estate_pass
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/usuarios_schema.sql:/docker-entrypoint-initdb.d/02-usuarios_schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql
+    networks:
+      - real-estate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 5s
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: real-estate-phpmyadmin
+    environment:
+      PMA_HOST: database
+      PMA_USER: real_estate_user
+      PMA_PASSWORD: real_estate_pass
+      PMA_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8081:80"
+    depends_on:
+      - database
+    networks:
+      - real-estate-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  real-estate-network:
+    driver: bridge

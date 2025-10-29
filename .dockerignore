@@ -1,0 +1,14 @@
+*.md
+.git
+.gitignore
+.env.example
+.DS_Store
+node_modules
+npm-debug.log
+docker-compose.override.yml
+Dockerfile.dev
+.vscode
+.idea
+*.swp
+*.swo
+*~
