@@ -433,10 +433,10 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                         // Check if it's a custom uploaded photo or a default image
                         if (strpos($photo, 'img/') === 0 || strpos($photo, 'casa') !== false) {
                             // Default image from img/ folder
-                            $photoSrc = (strpos($photo, 'img/') === 0) ? $photo : 'img/' . $photo;
+                            $photoSrc = (strpos($photo, 'img/') === 0) ? BASE_URL . $photo : BASE_URL . 'img/' . $photo;
                         } else {
-                            // Custom uploaded photo
-                            $photoSrc = 'assets/uploads/properties/' . $photo;
+                            // Custom uploaded photo - use UPLOADS_URL constant
+                            $photoSrc = UPLOADS_URL . 'properties/' . $photo;
                         }
                         ?>
                         <div class="current-photo-item" data-photo="<?= htmlspecialchars($photo) ?>">
@@ -625,11 +625,13 @@ function formatBytes(bytes) {
 
 function viewPhoto(filename) {
     // Determine the correct path for the image
+    const baseUrl = '<?= BASE_URL ?>';
+    const uploadsUrl = '<?= UPLOADS_URL ?>';
     let photoPath;
     if (filename.indexOf('img/') === 0 || filename.indexOf('casa') !== -1) {
-        photoPath = filename.indexOf('img/') === 0 ? filename : 'img/' + filename;
+        photoPath = filename.indexOf('img/') === 0 ? baseUrl + filename : baseUrl + 'img/' + filename;
     } else {
-        photoPath = 'assets/uploads/properties/' + filename;
+        photoPath = uploadsUrl + 'properties/' + filename;
     }
 
     const modal = document.createElement('div');
@@ -637,7 +639,7 @@ function viewPhoto(filename) {
     modal.innerHTML = `
         <div class="photo-modal-content">
             <button class="photo-modal-close" onclick="this.closest('.photo-modal').remove()">&times;</button>
-            <img src="${photoPath}" alt="Foto de la propiedad" onerror="this.src='img/casa1.jpeg'">
+            <img src="${photoPath}" alt="Foto de la propiedad" onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
         </div>
     `;
 

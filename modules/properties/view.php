@@ -241,8 +241,8 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                     // Default image from img/ folder
                     $photoSrc = (strpos($photo, 'img/') === 0) ? BASE_URL . $photo : BASE_URL . 'img/' . $photo;
                 } else {
-                    // Custom uploaded photo
-                    $photoSrc = BASE_URL . 'assets/uploads/properties/' . $photo;
+                    // Custom uploaded photo - use UPLOADS_URL constant
+                    $photoSrc = UPLOADS_URL . 'properties/' . $photo;
                 }
                 ?>
                 <div class="photo-item" data-photo-index="<?= $index ?>">
@@ -514,10 +514,11 @@ function openPhotoModal(index) {
     // Helper function to get the correct photo path
     function getPhotoPath(photo) {
         const baseUrl = '<?= BASE_URL ?>';
+        const uploadsUrl = '<?= UPLOADS_URL ?>';
         if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
             return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
         } else {
-            return baseUrl + 'assets/uploads/properties/' + photo;
+            return uploadsUrl + 'properties/' + photo;
         }
     }
 
@@ -556,10 +557,11 @@ function changePhoto(direction) {
     // Helper function to get the correct photo path
     function getPhotoPath(photo) {
         const baseUrl = '<?= BASE_URL ?>';
+        const uploadsUrl = '<?= UPLOADS_URL ?>';
         if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
             return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
         } else {
-            return baseUrl + 'assets/uploads/properties/' + photo;
+            return uploadsUrl + 'properties/' + photo;
         }
     }
 

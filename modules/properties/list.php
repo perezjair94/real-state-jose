@@ -265,7 +265,9 @@ try {
                     if (is_array($fotos) && !empty($fotos)) {
                         foreach ($fotos as $foto) {
                             if (!empty($foto)) {
-                                $allImages[] = BASE_URL . 'assets/uploads/properties/' . htmlspecialchars($foto);
+                                // Use relative path from current page location
+                                $imagePath = UPLOADS_URL . 'properties/' . htmlspecialchars($foto);
+                                $allImages[] = $imagePath;
                             }
                         }
                         $hasCustomPhoto = !empty($allImages);
@@ -412,7 +414,9 @@ try {
                         if (is_array($fotos_table) && !empty($fotos_table)) {
                             foreach ($fotos_table as $foto) {
                                 if (!empty($foto)) {
-                                    $allImages_table[] = BASE_URL . 'assets/uploads/properties/' . htmlspecialchars($foto);
+                                    // Use UPLOADS_URL constant for consistent image paths
+                                    $imagePath = UPLOADS_URL . 'properties/' . htmlspecialchars($foto);
+                                    $allImages_table[] = $imagePath;
                                 }
                             }
                         }
@@ -623,13 +627,16 @@ function changeSlide(propertyId, direction) {
 
     if (!sliderImages) return;
 
+    // Count total images correctly - handle both regular img tags and nested divs
+    const imgElements = sliderImages.querySelectorAll('img');
+    const totalImages = imgElements.length > 0 ? imgElements.length : sliderImages.children.length;
+
     // Get or initialize current index
     if (!slider.dataset.currentIndex) {
         slider.dataset.currentIndex = '0';
     }
 
     let currentIndex = parseInt(slider.dataset.currentIndex);
-    const totalImages = sliderImages.children.length;
 
     // Calculate new index
     currentIndex += direction;
@@ -921,8 +928,10 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 100%;
     transition: transform 0.5s ease-in-out;
-    overflow: hidden; /* Moved overflow hidden here to clip images but allow arrows */
-    flex-wrap: nowrap; /* Ensure images stay in one row */
+    overflow: hidden;
+    flex-wrap: nowrap;
+    /* Fix: ensure container is wide enough for all images */
+    flex-basis: 100%;
 }
 
 .slider-image {
@@ -1089,8 +1098,10 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 100%;
     transition: transform 0.4s ease-in-out;
-    overflow: hidden; /* Moved overflow hidden here */
-    flex-wrap: nowrap; /* Ensure images stay in one row */
+    overflow: hidden;
+    flex-wrap: nowrap;
+    /* Fix: ensure container is wide enough for all images */
+    flex-basis: 100%;
 }
 
 .table-slider-image {

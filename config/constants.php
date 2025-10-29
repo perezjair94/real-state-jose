@@ -48,7 +48,21 @@ if (!defined('BASE_URL')) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
-    $baseUrl = $protocol . $host . rtrim($scriptPath, '/') . '/';
+
+    // Clean up the path - if we're in /real-state-jose/config/constants.php,
+    // the path would be /real-state-jose/config, so we need to go up one level
+    if (basename($scriptPath) === 'config') {
+        $scriptPath = dirname($scriptPath);
+    }
+
+    // Ensure script path ends with /
+    if (empty($scriptPath) || $scriptPath === '/') {
+        $scriptPath = '/';
+    } else {
+        $scriptPath = rtrim($scriptPath, '/') . '/';
+    }
+
+    $baseUrl = $protocol . $host . $scriptPath;
     define('BASE_URL', $baseUrl);
     define('ASSETS_URL', BASE_URL . 'assets/');
     define('UPLOADS_URL', BASE_URL . 'assets/uploads/');
