@@ -264,9 +264,9 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                     placeholder="0"
                     required
                     min="1"
-                    step="1000"
+                    step="1"
                     data-validation="required|numeric|min_value:1"
-                    value="<?= htmlspecialchars($formData['precio'] ?? '') ?>"
+                    value="<?= (int)($formData['precio'] ?? 0) ?>"
                 >
                 <?php if (!empty($errors['precio'])): ?>
                     <div class="error-message"><?= htmlspecialchars($errors['precio']) ?></div>
