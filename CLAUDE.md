@@ -11,11 +11,12 @@ Real Estate Management System (Sistema de Gestión Inmobiliaria) - A full-stack 
 ## Architecture
 
 ### Current Implementation (PHP/MySQL)
-- **Backend**: PHP 8.0+ with PDO for secure database operations
-- **Database**: MySQL/MariaDB with normalized schema and foreign key relationships
+- **Backend**: PHP 8.2 (Docker) or 8.0+ (XAMPP/WAMP) with PDO for secure database operations
+- **Database**: MySQL 8.0 (Docker) or MariaDB with normalized schema and foreign key relationships
 - **Frontend**: Modern HTML5, CSS3 with Oswald font, vanilla JavaScript
 - **Security**: 2024 best practices including PDO prepared statements, CSRF protection, input validation
 - **Module Structure**: MVC-inspired modular architecture with separation of concerns
+- **Deployment**: Docker containerized (recommended) or traditional XAMPP/WAMP setup
 
 ### Application Entry Points
 - **`login.php`** - Unauthenticated entry point, validates credentials, redirects by role
@@ -34,136 +35,256 @@ Real Estate Management System (Sistema de Gestión Inmobiliaria) - A full-stack 
 
 ## Development Commands
 
-### Starting the Server
+### Docker Development (Recommended)
 
-For XAMPP/WAMP development:
 ```bash
-# Start Apache and MySQL services
-# Windows XAMPP: Use XAMPP Control Panel
-# Linux/macOS XAMPP:
-sudo /opt/lampp/lampp start
+# Quick start (3 commands)
+cd /home/cyb3r0801/projects/real-state-jose
+./docker-helpers.sh start          # Start all services with initialization
+# Wait 30 seconds for database to initialize
 
-# Access the application
-# http://localhost/real-state-jose
+# Access application
+# http://localhost:8080           # Main application
+# http://localhost:8081           # phpMyAdmin
+# Credentials: admin / admin123   # Default test user
 ```
 
-For built-in PHP server (testing only):
+**Helper Script Commands:**
 ```bash
-# Start PHP server
-php -m http.server 8000
+./docker-helpers.sh start         # Start containers with database initialization
+./docker-helpers.sh stop          # Stop all containers
+./docker-helpers.sh restart       # Restart services
+./docker-helpers.sh logs          # View real-time logs
+./docker-helpers.sh status        # Show container status
+./docker-helpers.sh shell-web     # SSH into web container (PHP console)
+./docker-helpers.sh shell-db      # SSH into database container (MySQL CLI)
+./docker-helpers.sh backup-db     # Backup database to SQL file
+./docker-helpers.sh clean         # Remove all containers/volumes (resets everything)
+```
 
-# Or use Python for static files
-python3 -m http.server 8000
+**Docker Services:**
+- **web** (PHP 8.2 + Apache 2.4) - Port 8080:80
+- **database** (MySQL 8.0) - Port 3306:3306
+- **phpmyadmin** - Port 8081:80
+
+**Auto-initialized with:**
+- Complete schema (schema.sql)
+- Authentication system (usuarios_schema.sql with triggers)
+- Sample data (seed.sql)
+- Volumes for live code sync and persistent storage
+
+### Traditional XAMPP/WAMP Development
+
+```bash
+# Start services
+# Windows: Use XAMPP Control Panel to start Apache + MySQL
+# Linux/macOS: sudo /opt/lampp/lampp start
+
+# Access application
+# http://localhost/real-state-jose
 ```
 
 ### Database Management
 
 ```bash
-# Access MySQL via command line
+# Via Docker (when running)
+./docker-helpers.sh shell-db      # Enter MySQL CLI
+
+# Via command line (XAMPP/WAMP)
 mysql -u root -p real_estate_db
 
-# Import database schema (main tables)
+# Import schemas manually
 mysql -u root -p real_estate_db < database/schema.sql
-
-# Import authentication system (usuarios table)
 mysql -u root -p real_estate_db < database/usuarios_schema.sql
-
-# Import sample data
 mysql -u root -p real_estate_db < database/seed.sql
+```
 
-# Access via phpMyAdmin
-# http://localhost/phpmyadmin
+### Database Connection Testing
+
+```bash
+# Via Docker
+./docker-helpers.sh shell-web
+php test_connection.php
+php debug_connection.php
+
+# Via XAMPP/WAMP (in project root)
+php test_connection.php
+php debug_connection.php
 ```
 
 ### Authentication Setup
 
 ```bash
-# Create usuarios table (required for login system)
-mysql -u root -p real_estate_db < database/usuarios_schema.sql
-
 # Generate password hash for new users
 php generate_password_hash.php
 # Then insert the hash into usuarios table
 
-# Test credentials (development only - hashes are valid BCRYPT):
+# Default test credentials (pre-hashed in database)
 # Admin: admin / admin123 (email: admin@inmobiliaria.com)
 # Client: cliente1 / cliente123 (email: cliente1@example.com)
-# Los hashes en usuarios_schema.sql son válidos y funcionan inmediatamente
-```
-
-### Testing Database Connection
-
-```bash
-# Test database connectivity
-php test_connection.php
-
-# Debug connection issues
-php debug_connection.php
 ```
 
 ## Project Structure
 
 ```
 real-state-jose/
-├── login.php                         # Unified login page (redirects by role)
-├── index.php                         # Main entry point - requires auth, role middleware
-├── index.html                        # Legacy single-page app (reference only)
-├── generate_password_hash.php        # Utility to create password hashes (dev only)
-│
-├── admin/                            # Admin-only area (requireRole('admin'))
-│   ├── dashboard.php                # Admin dashboard with full stats
-│   └── logout.php                   # Admin logout handler
-│
-├── cliente/                          # Client-only area (requireRole('cliente'))
-│   ├── dashboard.php                # Client dashboard (limited view)
-│   └── logout.php                   # Client logout handler
+├── Core Application
+│   ├── login.php                         # Unified login page (redirects by role)
+│   ├── index.php                         # Main entry point - requires auth, role middleware
+│   ├── index.html                        # Legacy single-page app (reference only)
+│   ├── health.php                        # Docker health check
+│   ├── diagnose.php                      # Diagnostic utilities
+│   └── generate_password_hash.php        # Password hash utility (dev only)
 │
 ├── config/
-│   ├── database.php                 # PDO connection class (2024 security standards)
-│   └── constants.php                # Application constants and configuration
+│   ├── constants.php                     # Central configuration hub
+│   ├── database.php                      # PDO connection class with environment support
+│   ├── apache.conf                       # Apache configuration for Docker
+│   └── php.ini                           # PHP settings
 │
 ├── includes/
-│   ├── header.php                   # Common header with navigation
-│   ├── footer.php                   # Common footer
-│   └── functions.php                # Utility functions + auth functions (isLoggedIn, hasRole, etc.)
+│   ├── functions.php                     # Utility functions + auth (732 lines)
+│   ├── header.php                        # Navigation header
+│   └── footer.php                        # Common footer
 │
-├── modules/                          # Feature modules (dual structure)
-│   ├── properties/                  # Property management (English)
-│   │   ├── list.php                # Display properties
-│   │   ├── create.php              # Add new property (admin only)
-│   │   ├── edit.php                # Update property (admin only)
-│   │   ├── view.php                # Property details
-│   │   └── ajax.php                # AJAX endpoints
-│   ├── inmuebles/                   # Property management (Spanish - duplicate)
-│   ├── clients/                     # Client management (English - admin only)
-│   ├── clientes/                    # Client management (Spanish - admin only)
-│   ├── agents/                      # Agents (admin only)
-│   ├── sales/                       # Sales (admin only)
-│   ├── contracts/                   # Contracts (admin only)
-│   ├── rentals/                     # Rentals (admin only)
-│   └── visits/                      # Visits (admin only)
+├── modules/                              # Feature modules (7 modules, 35 files, 4,335 lines)
+│   ├── properties/                       # Property management (primary module)
+│   │   ├── list.php                     # Display with carousel slider
+│   │   ├── create.php                   # Add new property
+│   │   ├── edit.php                     # Update property
+│   │   ├── view.php                     # Property details
+│   │   └── ajax.php                     # AJAX endpoints
+│   ├── inmuebles/                        # Spanish version (duplicate)
+│   ├── clients/                          # Client management (admin only)
+│   ├── clientes/                         # Spanish version (admin only)
+│   ├── agents/                           # Agent management
+│   ├── sales/                            # Sales transactions
+│   ├── contracts/                        # Contract management
+│   ├── rentals/                          # Rental agreements
+│   └── visits/                           # Property visit scheduling
+│
+├── admin/                                # Admin-only area
+│   ├── dashboard.php                    # Admin landing page (full stats)
+│   └── logout.php                       # Admin logout
+│
+├── cliente/                              # Client-only area
+│   ├── dashboard.php                    # Client landing (limited view)
+│   └── logout.php                       # Client logout
 │
 ├── assets/
-│   ├── css/
-│   │   └── style.css               # Main stylesheet with modern design
-│   └── js/
-│       └── main.js                 # Client-side JavaScript
+│   ├── css/style.css                    # Main stylesheet (responsive, Oswald font)
+│   ├── js/
+│   │   ├── app.js                       # Main application script
+│   │   ├── ajax.js                      # AJAX utilities
+│   │   └── validation.js                # Client-side validation
+│   └── uploads/                         # User-uploaded files (contracts, images)
 │
-├── img/                             # Property images
+├── img/                                  # Property images
 │
 ├── database/
-│   ├── schema.sql                   # Main database structure
-│   ├── usuarios_schema.sql          # Authentication tables (usuarios + triggers)
-│   └── seed.sql                     # Sample data
+│   ├── schema.sql                       # Main business tables schema
+│   ├── usuarios_schema.sql              # Authentication tables + triggers
+│   ├── seed.sql                         # Sample data
+│   └── migrations/                      # Schema version control
+│       ├── 000_initial_schema.sql
+│       └── 001_remove_reservado_status.sql
 │
-├── documentation/
-│   └── setup.md                     # Detailed setup instructions
+├── Docker Configuration
+│   ├── Dockerfile                       # PHP 8.2 + Apache multi-stage
+│   ├── docker-compose.yml               # 3-service orchestration
+│   ├── docker-entrypoint.sh             # Container initialization
+│   └── docker-helpers.sh                # Helper commands
 │
-├── INSTRUCCIONES_LOGIN.md           # Authentication system guide (Spanish)
+├── Documentation
+│   ├── CLAUDE.md                        # This file - AI guidance
+│   ├── QUICK_START.md                   # Fast Docker setup
+│   ├── DOCKER_SETUP.md                  # Detailed Docker guide
+│   ├── DOCKER_RUNNING.md                # Docker operations
+│   ├── ENVIRONMENT_SETUP.md             # XAMPP/WAMP setup (Spanish)
+│   ├── INSTRUCCIONES_LOGIN.md           # Authentication guide
+│   ├── TODO.md                          # Development roadmap
+│   └── propuesta-mejoramiento.md        # Improvement proposals
 │
-└── PRPs/                            # Project Requirements Planning
-    └── real-estate-php-mysql-conversion.md
+├── Development Tools
+│   ├── test_connection.php              # Database connectivity test
+│   ├── debug_connection.php             # Detailed diagnostics
+│   ├── debug_base_url.php               # URL configuration debug
+│   ├── fix_encoding.php                 # UTF-8 encoding fixes
+│   └── diagnostico_imagenes.php         # Image handling diagnostics
+│
+├── .claude/
+│   └── commands/                        # Claude Code CLI commands
+│       ├── primer.md
+│       ├── generate-prp.md
+│       ├── execute-prp.md
+│       ├── fix-github-issue.md
+│       └── analyze-performance.md
+│
+└── Configuration Files
+    ├── .env.example                     # Environment template
+    ├── .gitignore
+    ├── docker-compose.yml
+    └── .git/
 ```
+
+## Architecture & Design Patterns
+
+### Router Pattern (index.php)
+- Central entry point for authenticated users
+- Module/action routing via `?module={module}&action={action}&id={id}`
+- Role-based authorization middleware
+- AJAX detection for JSON responses
+- Whitelist validation of modules and actions
+
+### Module Structure
+- Consistent 5-file pattern per module: list, create, edit, view, ajax
+- Each module handles own business logic independently
+- AJAX endpoints return JSON for frontend consumption
+- Admin-only modules blocked by `index.php` middleware for clientes
+
+### Database Layer
+- PDO with prepared statements (ALWAYS, NEVER direct SQL)
+- Environment-variable based configuration
+- Connection pooling and timeout support
+- Transaction support for multi-step operations
+
+### Authentication & Authorization
+- Session-based with timeout enforcement
+- Two roles: `admin` (full), `cliente` (properties read-only)
+- Brute-force protection: 5 attempts = 15min lockout
+- Password hashing with BCRYPT via `password_hash()`
+- Role checks at router level prevent unauthorized access
+
+### Security Implementation (2024 Standards)
+
+#### Authentication & Authorization
+- **Password Hashing**: `password_hash()` with BCRYPT (never plain text)
+- **Brute Force Protection**: 5 failed attempts = 15 minute account lockout
+- **Session-Based Auth**: Secure session with timeout (1 hour default)
+- **Role-Based Access Control**: Middleware in index.php enforces permissions
+  - Admin: Full CRUD access to all modules
+  - Cliente: Read-only access to properties module only (list, view actions)
+- **Route Protection**: All pages call `requireLogin()` or `requireRole($rol)`
+- **Automatic Redirects**: Unauthorized access redirects to appropriate dashboard
+
+#### Database Security
+- **PDO Prepared Statements**: ALWAYS used, NEVER concatenate SQL
+- **Emulation Disabled**: `PDO::ATTR_EMULATE_PREPARES => false`
+- **Exception Mode**: Proper error handling with `PDO::ERRMODE_EXCEPTION`
+
+#### Input Validation
+- **Client-side**: JavaScript validation for UX
+- **Server-side**: PHP validation with `filter_var()` and custom rules
+- **Sanitization**: `htmlspecialchars()` to prevent XSS attacks
+
+#### Session Security
+- **CSRF Protection**: Tokens generated and verified for all forms (30min expiry)
+- **Session Initialization**: `initSession()` with regeneration and timeout checks
+- **Session Variables**: user_id, user_role, username, nombre_completo, email, id_cliente
+
+#### Error Handling
+- Development: Detailed errors logged to error_log
+- Production: User-friendly messages without system details
 
 ## Database Schema
 
@@ -187,12 +308,13 @@ real-state-jose/
 
 **cliente** - Customer information
 - `id_cliente` (PK), `nombre`, `apellido`, `tipo_documento`, `nro_documento` (UNIQUE)
-- `correo` (UNIQUE), `direccion`, `tipo_cliente`
+- `correo` (UNIQUE), `direccion`, `tipo_cliente` (Comprador, Vendedor, Arrendatario, Arrendador)
 - Foreign keys: Referenced by venta, contrato, arriendo, visita, usuarios
 
 **inmueble** - Property listings
 - `id_inmueble` (PK), `tipo_inmueble`, `direccion`, `ciudad`, `precio`
-- `estado`, `descripcion`, `fotos` (JSON), property details
+- `estado` (Disponible, Vendido, Arrendado), `descripcion`, `fotos` (JSON array of filenames)
+- `area_construida`, `area_lote`, `habitaciones`, `banos`, `garaje`
 - Foreign keys: Referenced by venta, contrato, arriendo, visita
 
 **agente** - Real estate agents
@@ -220,37 +342,6 @@ real-state-jose/
 - Timestamps: `created_at`, `updated_at` for audit trails
 - Triggers automatically update inmueble status on venta/arriendo insert
 
-## Security Implementation (2024 Standards)
-
-### Authentication & Authorization
-- **Password Hashing**: `password_hash()` with BCRYPT (never plain text)
-- **Brute Force Protection**: 5 failed attempts = 15 minute account lockout
-- **Session-Based Auth**: Secure session with timeout (1 hour default in constants.php)
-- **Role-Based Access Control**: Middleware in index.php enforces permissions
-  - Admin: Full CRUD access to all modules
-  - Cliente: Read-only access to properties module only (list, view actions)
-- **Route Protection**: All pages call `requireLogin()` or `requireRole($rol)`
-- **Automatic Redirects**: Unauthorized access redirects to appropriate dashboard
-
-### Database Security
-- **PDO Prepared Statements**: ALWAYS used, NEVER concatenate SQL
-- **Emulation Disabled**: `PDO::ATTR_EMULATE_PREPARES => false`
-- **Exception Mode**: Proper error handling with `PDO::ERRMODE_EXCEPTION`
-
-### Input Validation
-- **Client-side**: JavaScript validation for UX
-- **Server-side**: PHP validation with `filter_var()` and custom rules
-- **Sanitization**: `htmlspecialchars()` to prevent XSS attacks
-
-### Session Security
-- **CSRF Protection**: Tokens generated and verified for all forms (30min expiry)
-- **Session Initialization**: `initSession()` with regeneration and timeout checks
-- **Session Variables**: user_id, user_role, username, nombre_completo, email, id_cliente
-
-### Error Handling
-- Development: Detailed errors logged to error_log
-- Production: User-friendly messages without system details
-
 ## Authentication Flow
 
 ### Login Process
@@ -258,7 +349,7 @@ real-state-jose/
 2. Submits username/email + password
 3. `login.php` validates credentials against `usuarios` table
 4. On success: Sets session variables, updates `ultimo_acceso`, resets `intentos_login`
-5. On failure: Increments `intentos_login`, blocks account after 5 attempts
+5. On failure: Increments `intentos_login`, blocks account after 5 attempts (15 min)
 6. Redirects based on `rol`:
    - `admin` → `admin/dashboard.php`
    - `cliente` → `cliente/dashboard.php`
@@ -380,9 +471,10 @@ index.php?module=sales&action=edit&id=5      // Admin only - cliente blocked by 
 
 ### Layout Components
 - **Navbar**: Fixed navigation with logo and module links
-- **Property Cards**: Modern card design with hover effects
+- **Property Cards**: Modern card design with carousel slider
 - **Forms**: Two-column grid layout with `.form-row` and `.form-group`
 - **Tables**: Striped tables with action buttons
+- **Responsive**: Mobile-first CSS Grid/Flexbox layout
 
 ## Common Development Tasks
 
@@ -519,19 +611,28 @@ WHERE username = 'username_here';
 - Active development uses PHP files
 
 ### File Uploads
-- Property photos: Store in `img/` directory
-- Contract documents: Store in `uploads/contracts/` directory
+- Property photos: Store in `assets/uploads/properties/`
+- Contract documents: Store in `assets/uploads/contracts/`
 - Always validate file types and sizes
+- JSON storage: `inmueble.fotos` stores filenames as JSON array
 
 ### Environment Configuration
 - Development: Set `ENVIRONMENT = 'development'` in `config/constants.php`
 - Debug mode: Enable `DEBUG_MODE` for detailed logging
 - Production: Disable debug, use error logging only
+- Docker: Environment variables via docker-compose.yml
 
 ### Character Encoding
 - All files MUST use UTF-8 encoding
 - Database uses `utf8mb4_unicode_ci` collation
-- Always use `header('Content-Type: text/html; charset=utf-8')`
+- Always use: `header('Content-Type: text/html; charset=utf-8')`
+
+### Image Handling
+- Property images stored in `assets/uploads/properties/`
+- Apache configured to serve uploads directly
+- URL paths use UPLOADS_URL constant (set in constants.php)
+- Image detection: Check for 'img/' or 'casa' in filename for default images
+- Carousel slider implemented with transform translateX for smooth navigation
 
 ## Educational Context
 
@@ -540,22 +641,17 @@ This is an educational project demonstrating professional web development:
 - Follows 2024 PHP security best practices
 - Suitable for student portfolios
 - Real-world business application patterns
-
-## Setup Requirements
-
-See `ENVIRONMENT_SETUP.md` for detailed setup instructions including:
-- XAMPP/WAMP installation
-- Database configuration
-- PHP version requirements (8.0+)
-- Extension requirements (PDO, mbstring)
-- Permission configuration
+- Complete implementation of 7 feature modules with 35+ PHP files
 
 ## Resources
 
-- **Authentication guide**: `INSTRUCCIONES_LOGIN.md` - Complete setup and usage of dual-role login system
-- **Full setup guide**: `ENVIRONMENT_SETUP.md` - XAMPP/WAMP installation and configuration
+- **Quick Start**: `QUICK_START.md` - Fast Docker setup (3 commands)
+- **Docker Guide**: `DOCKER_SETUP.md` - Detailed Docker configuration
+- **Docker Operations**: `DOCKER_RUNNING.md` - Docker troubleshooting
+- **Authentication guide**: `INSTRUCCIONES_LOGIN.md` - Complete authentication system
+- **XAMPP/WAMP Setup**: `ENVIRONMENT_SETUP.md` - Traditional development setup (Spanish)
 - **Database schema**: `database/schema.sql` - Main business tables
 - **Authentication schema**: `database/usuarios_schema.sql` - User authentication tables
 - **Project requirements**: `PRPs/real-estate-php-mysql-conversion.md`
 - **Testing utilities**: `test_connection.php`, `debug_connection.php`
-- **Password tool**: `generate_password_hash.php` - Generate BCRYPT hashes (dev only, remove in production)
+- **Password tool**: `generate_password_hash.php` - Generate BCRYPT hashes (dev only)
