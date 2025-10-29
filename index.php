@@ -213,8 +213,10 @@ if (SHOW_EDUCATIONAL_COMMENTS): ?>
 // Include the footer
 require_once 'includes/footer.php';
 
-// Clean up output buffer
-ob_end_flush();
+// Clean up output buffer (only if it's active)
+if (ob_get_level() > 0) {
+    ob_end_flush();
+}
 
 // Educational timing information in development
 if (ENVIRONMENT === 'development' && SHOW_DEBUG_INFO) {

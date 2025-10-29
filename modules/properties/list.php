@@ -922,6 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     transition: transform 0.5s ease-in-out;
     overflow: hidden; /* Moved overflow hidden here to clip images but allow arrows */
+    flex-wrap: nowrap; /* Ensure images stay in one row */
 }
 
 .slider-image {
@@ -930,6 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     object-fit: cover;
     flex-shrink: 0;
+    display: block; /* Ensure images display as block elements */
 }
 
 /* Navigation Arrows - Always Visible */
@@ -1088,6 +1090,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     transition: transform 0.4s ease-in-out;
     overflow: hidden; /* Moved overflow hidden here */
+    flex-wrap: nowrap; /* Ensure images stay in one row */
 }
 
 .table-slider-image {
@@ -1096,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     object-fit: cover;
     flex-shrink: 0;
+    display: block; /* Ensure images display as block elements */
 }
 
 /* Table Navigation Arrows - Always Visible */

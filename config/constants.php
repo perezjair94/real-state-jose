@@ -5,59 +5,61 @@
  * Educational PHP/MySQL Project
  */
 
-// Prevent direct access
-if (!defined('APP_ACCESS')) {
-    define('APP_ACCESS', true);
+// Prevent double-definition of constants
+if (defined('APP_INITIALIZED')) {
+    return;
 }
 
 // Application Information
-define('APP_NAME', 'Sistema de Gestión Inmobiliaria');
-define('APP_VERSION', '1.0.0');
-define('APP_DESCRIPTION', 'Sistema educativo para gestión de propiedades inmobiliarias');
-define('APP_AUTHOR', 'Proyecto Educativo PHP/MySQL');
+if (!defined('APP_NAME')) define('APP_NAME', 'Sistema de Gestión Inmobiliaria');
+if (!defined('APP_VERSION')) define('APP_VERSION', '1.0.0');
+if (!defined('APP_DESCRIPTION')) define('APP_DESCRIPTION', 'Sistema educativo para gestión de propiedades inmobiliarias');
+if (!defined('APP_AUTHOR')) define('APP_AUTHOR', 'Proyecto Educativo PHP/MySQL');
 
 // Environment Configuration
-define('ENVIRONMENT', 'development'); // development, production
-define('DEBUG_MODE', true); // Set to false in production
+if (!defined('ENVIRONMENT')) define('ENVIRONMENT', 'development'); // development, production
+if (!defined('DEBUG_MODE')) define('DEBUG_MODE', true); // Set to false in production
 
 // Security Configuration
-define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
-define('MAX_LOGIN_ATTEMPTS', 5);
-define('PASSWORD_MIN_LENGTH', 8);
-define('CSRF_TOKEN_EXPIRY', 1800); // 30 minutes
+if (!defined('SESSION_TIMEOUT')) define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
+if (!defined('MAX_LOGIN_ATTEMPTS')) define('MAX_LOGIN_ATTEMPTS', 5);
+if (!defined('PASSWORD_MIN_LENGTH')) define('PASSWORD_MIN_LENGTH', 8);
+if (!defined('CSRF_TOKEN_EXPIRY')) define('CSRF_TOKEN_EXPIRY', 1800); // 30 minutes
 
 // File Upload Configuration
-define('UPLOAD_MAX_SIZE', 5 * 1024 * 1024); // 5MB in bytes
-define('UPLOAD_PATH_PROPERTIES', 'assets/uploads/properties/');
-define('UPLOAD_PATH_CONTRACTS', 'assets/uploads/contracts/');
+if (!defined('UPLOAD_MAX_SIZE')) define('UPLOAD_MAX_SIZE', 5 * 1024 * 1024); // 5MB in bytes
+if (!defined('UPLOAD_PATH_PROPERTIES')) define('UPLOAD_PATH_PROPERTIES', 'assets/uploads/properties/');
+if (!defined('UPLOAD_PATH_CONTRACTS')) define('UPLOAD_PATH_CONTRACTS', 'assets/uploads/contracts/');
 
 // Allowed file types for uploads
-define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-define('ALLOWED_DOCUMENT_TYPES', ['pdf', 'doc', 'docx', 'txt']);
+if (!defined('ALLOWED_IMAGE_TYPES')) define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+if (!defined('ALLOWED_DOCUMENT_TYPES')) define('ALLOWED_DOCUMENT_TYPES', ['pdf', 'doc', 'docx', 'txt']);
 
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'real_estate_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', 'real_estate_db');
+if (!defined('DB_USER')) define('DB_USER', 'root');
+if (!defined('DB_PASS')) define('DB_PASS', '');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 // Application URLs (adjust for your environment)
 // Auto-detect BASE_URL or use default
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$scriptPath = dirname($_SERVER['SCRIPT_NAME']);
-$baseUrl = $protocol . $host . rtrim($scriptPath, '/') . '/';
-define('BASE_URL', $baseUrl);
-define('ASSETS_URL', BASE_URL . 'assets/');
-define('UPLOADS_URL', BASE_URL . 'assets/uploads/');
+if (!defined('BASE_URL')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+    $baseUrl = $protocol . $host . rtrim($scriptPath, '/') . '/';
+    define('BASE_URL', $baseUrl);
+    define('ASSETS_URL', BASE_URL . 'assets/');
+    define('UPLOADS_URL', BASE_URL . 'assets/uploads/');
+}
 
 // Pagination Settings
-define('RECORDS_PER_PAGE', 10);
-define('MAX_PAGINATION_LINKS', 10);
+if (!defined('RECORDS_PER_PAGE')) define('RECORDS_PER_PAGE', 10);
+if (!defined('MAX_PAGINATION_LINKS')) define('MAX_PAGINATION_LINKS', 10);
 
 // Module Configuration
-define('AVAILABLE_MODULES', [
+if (!defined('AVAILABLE_MODULES')) define('AVAILABLE_MODULES', [
     'properties' => 'Inmuebles',
     'clients' => 'Clientes',
     'agents' => 'Agentes',
@@ -68,7 +70,7 @@ define('AVAILABLE_MODULES', [
 ]);
 
 // Menu Structure with Submenus
-define('MENU_STRUCTURE', [
+if (!defined('MENU_STRUCTURE')) define('MENU_STRUCTURE', [
     [
         'key' => 'properties',
         'label' => 'Inmuebles',
@@ -114,10 +116,10 @@ define('MENU_STRUCTURE', [
 ]);
 
 // Default Module
-define('DEFAULT_MODULE', 'properties');
+if (!defined('DEFAULT_MODULE')) define('DEFAULT_MODULE', 'properties');
 
 // Available Actions per Module
-define('MODULE_ACTIONS', [
+if (!defined('MODULE_ACTIONS')) define('MODULE_ACTIONS', [
     'list' => 'Listar',
     'create' => 'Crear',
     'edit' => 'Editar',
@@ -127,7 +129,7 @@ define('MODULE_ACTIONS', [
 ]);
 
 // Property Types
-define('PROPERTY_TYPES', [
+if (!defined('PROPERTY_TYPES')) define('PROPERTY_TYPES', [
     'Casa' => 'Casa',
     'Apartamento' => 'Apartamento',
     'Local' => 'Local Comercial',
@@ -136,14 +138,14 @@ define('PROPERTY_TYPES', [
 ]);
 
 // Property Status
-define('PROPERTY_STATUS', [
+if (!defined('PROPERTY_STATUS')) define('PROPERTY_STATUS', [
     'Disponible' => 'Disponible',
     'Arrendado' => 'Arrendado',
     'Vendido' => 'Vendido'
 ]);
 
 // Client Types
-define('CLIENT_TYPES', [
+if (!defined('CLIENT_TYPES')) define('CLIENT_TYPES', [
     'Comprador' => 'Comprador',
     'Vendedor' => 'Vendedor',
     'Arrendatario' => 'Arrendatario',
@@ -151,7 +153,7 @@ define('CLIENT_TYPES', [
 ]);
 
 // Document Types
-define('DOCUMENT_TYPES', [
+if (!defined('DOCUMENT_TYPES')) define('DOCUMENT_TYPES', [
     'CC' => 'Cédula de Ciudadanía',
     'CE' => 'Cédula de Extranjería',
     'PP' => 'Pasaporte',
@@ -159,13 +161,13 @@ define('DOCUMENT_TYPES', [
 ]);
 
 // Contract Types
-define('CONTRACT_TYPES', [
+if (!defined('CONTRACT_TYPES')) define('CONTRACT_TYPES', [
     'Venta' => 'Venta',
     'Arriendo' => 'Arriendo'
 ]);
 
 // Contract Status
-define('CONTRACT_STATUS', [
+if (!defined('CONTRACT_STATUS')) define('CONTRACT_STATUS', [
     'Borrador' => 'Borrador',
     'Activo' => 'Activo',
     'Finalizado' => 'Finalizado',
@@ -173,7 +175,7 @@ define('CONTRACT_STATUS', [
 ]);
 
 // Rental Status
-define('RENTAL_STATUS', [
+if (!defined('RENTAL_STATUS')) define('RENTAL_STATUS', [
     'Activo' => 'Activo',
     'Vencido' => 'Vencido',
     'Terminado' => 'Terminado',
@@ -181,7 +183,7 @@ define('RENTAL_STATUS', [
 ]);
 
 // Visit Status
-define('VISIT_STATUS', [
+if (!defined('VISIT_STATUS')) define('VISIT_STATUS', [
     'Programada' => 'Programada',
     'Realizada' => 'Realizada',
     'Cancelada' => 'Cancelada',
@@ -189,7 +191,7 @@ define('VISIT_STATUS', [
 ]);
 
 // Interest Levels for Visits
-define('INTEREST_LEVELS', [
+if (!defined('INTEREST_LEVELS')) define('INTEREST_LEVELS', [
     'Muy Interesado' => 'Muy Interesado',
     'Interesado' => 'Interesado',
     'Poco Interesado' => 'Poco Interesado',
@@ -197,7 +199,7 @@ define('INTEREST_LEVELS', [
 ]);
 
 // Colombian Cities (most common)
-define('CITIES', [
+if (!defined('CITIES')) define('CITIES', [
     'Bogotá' => 'Bogotá D.C.',
     'Medellín' => 'Medellín',
     'Cali' => 'Cali',
@@ -213,7 +215,7 @@ define('CITIES', [
 ]);
 
 // Error Messages
-define('ERROR_MESSAGES', [
+if (!defined('ERROR_MESSAGES')) define('ERROR_MESSAGES', [
     'required' => 'Este campo es obligatorio',
     'email' => 'Ingrese un email válido',
     'numeric' => 'Este campo debe ser numérico',
@@ -226,7 +228,7 @@ define('ERROR_MESSAGES', [
 ]);
 
 // Success Messages
-define('SUCCESS_MESSAGES', [
+if (!defined('SUCCESS_MESSAGES')) define('SUCCESS_MESSAGES', [
     'created' => 'Registro creado exitosamente',
     'updated' => 'Registro actualizado exitosamente',
     'deleted' => 'Registro eliminado exitosamente',
@@ -234,37 +236,37 @@ define('SUCCESS_MESSAGES', [
 ]);
 
 // Date and Time Formats
-define('DATE_FORMAT', 'Y-m-d');
-define('DATETIME_FORMAT', 'Y-m-d H:i:s');
-define('DISPLAY_DATE_FORMAT', 'd/m/Y');
-define('DISPLAY_DATETIME_FORMAT', 'd/m/Y H:i');
+if (!defined('DATE_FORMAT')) define('DATE_FORMAT', 'Y-m-d');
+if (!defined('DATETIME_FORMAT')) define('DATETIME_FORMAT', 'Y-m-d H:i:s');
+if (!defined('DISPLAY_DATE_FORMAT')) define('DISPLAY_DATE_FORMAT', 'd/m/Y');
+if (!defined('DISPLAY_DATETIME_FORMAT')) define('DISPLAY_DATETIME_FORMAT', 'd/m/Y H:i');
 
 // Currency Configuration
-define('CURRENCY_SYMBOL', '$');
-define('CURRENCY_CODE', 'COP');
-define('CURRENCY_DECIMALS', 0);
+if (!defined('CURRENCY_SYMBOL')) define('CURRENCY_SYMBOL', '$');
+if (!defined('CURRENCY_CODE')) define('CURRENCY_CODE', 'COP');
+if (!defined('CURRENCY_DECIMALS')) define('CURRENCY_DECIMALS', 0);
 
 // Logging Configuration
-define('LOG_ENABLED', true);
-define('LOG_PATH', 'logs/');
-define('LOG_MAX_SIZE', 10 * 1024 * 1024); // 10MB
+if (!defined('LOG_ENABLED')) define('LOG_ENABLED', true);
+if (!defined('LOG_PATH')) define('LOG_PATH', 'logs/');
+if (!defined('LOG_MAX_SIZE')) define('LOG_MAX_SIZE', 10 * 1024 * 1024); // 10MB
 
 // Cache Configuration
-define('CACHE_ENABLED', false); // Simple file cache
-define('CACHE_PATH', 'cache/');
-define('CACHE_EXPIRY', 3600); // 1 hour
+if (!defined('CACHE_ENABLED')) define('CACHE_ENABLED', false); // Simple file cache
+if (!defined('CACHE_PATH')) define('CACHE_PATH', 'cache/');
+if (!defined('CACHE_EXPIRY')) define('CACHE_EXPIRY', 3600); // 1 hour
 
 // Email Configuration (for future enhancements)
-define('MAIL_ENABLED', false);
-define('MAIL_HOST', 'smtp.gmail.com');
-define('MAIL_PORT', 587);
-define('MAIL_USERNAME', '');
-define('MAIL_PASSWORD', '');
-define('MAIL_FROM_EMAIL', 'noreply@inmobiliaria.com');
-define('MAIL_FROM_NAME', 'Sistema Inmobiliario');
+if (!defined('MAIL_ENABLED')) define('MAIL_ENABLED', false);
+if (!defined('MAIL_HOST')) define('MAIL_HOST', 'smtp.gmail.com');
+if (!defined('MAIL_PORT')) define('MAIL_PORT', 587);
+if (!defined('MAIL_USERNAME')) define('MAIL_USERNAME', '');
+if (!defined('MAIL_PASSWORD')) define('MAIL_PASSWORD', '');
+if (!defined('MAIL_FROM_EMAIL')) define('MAIL_FROM_EMAIL', 'noreply@inmobiliaria.com');
+if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', 'Sistema Inmobiliario');
 
 // Educational Comments Configuration
-define('SHOW_EDUCATIONAL_COMMENTS', true); // Display helpful comments in forms
+if (!defined('SHOW_EDUCATIONAL_COMMENTS')) define('SHOW_EDUCATIONAL_COMMENTS', true); // Display helpful comments in forms
 
 // Development Tools
 if (ENVIRONMENT === 'development') {
@@ -274,16 +276,16 @@ if (ENVIRONMENT === 'development') {
     ini_set('display_startup_errors', 1);
 
     // Development-specific constants
-    define('SHOW_DEBUG_INFO', true);
-    define('LOG_QUERIES', true);
+    if (!defined('SHOW_DEBUG_INFO')) define('SHOW_DEBUG_INFO', true);
+    if (!defined('LOG_QUERIES')) define('LOG_QUERIES', true);
 } else {
     // Production settings
     error_reporting(0);
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
 
-    define('SHOW_DEBUG_INFO', false);
-    define('LOG_QUERIES', false);
+    if (!defined('SHOW_DEBUG_INFO')) define('SHOW_DEBUG_INFO', false);
+    if (!defined('LOG_QUERIES')) define('LOG_QUERIES', false);
 }
 
 // Helper function to get constant arrays (since PHP constants can't hold arrays in older versions)
@@ -306,6 +308,6 @@ if (!function_exists('getConstantArray')) {
     }
 }
 
-// Application initialization flag
+// Application initialization flag - marks end of constants file
 define('APP_INITIALIZED', true);
 ?>

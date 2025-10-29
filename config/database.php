@@ -7,12 +7,21 @@
 
 class Database {
     // Database configuration - modify these values for your environment
-    private $host = '127.0.0.1';
-    private $db_name = 'real_estate_db';
-    private $username = 'root';
-    private $password = '';
+    // When running with Docker, these values are set from environment variables
+    private $host;
+    private $db_name;
+    private $username;
+    private $password;
     private $charset = 'utf8mb4';
     private $pdo;
+
+    public function __construct() {
+        // Get database configuration from environment variables (Docker) or use defaults
+        $this->host = getenv('MYSQL_HOST') ?: '127.0.0.1';
+        $this->db_name = getenv('MYSQL_DATABASE') ?: 'real_estate_db';
+        $this->username = getenv('MYSQL_USER') ?: 'root';
+        $this->password = getenv('MYSQL_PASSWORD') ?: '';
+    }
 
     /**
      * Get secure PDO database connection
