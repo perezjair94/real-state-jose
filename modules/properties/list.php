@@ -265,8 +265,14 @@ try {
                     if (is_array($fotos) && !empty($fotos)) {
                         foreach ($fotos as $foto) {
                             if (!empty($foto)) {
-                                // Use relative path from current page location
-                                $imagePath = UPLOADS_URL . 'properties/' . htmlspecialchars($foto);
+                                // Check if it's a custom uploaded photo or default image
+                                if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
+                                    // Default image from img/ folder
+                                    $imagePath = (strpos($foto, 'img/') === 0) ? BASE_URL . $foto : BASE_URL . 'img/' . $foto;
+                                } else {
+                                    // Custom uploaded photo - use UPLOADS_URL constant
+                                    $imagePath = UPLOADS_URL . 'properties/' . $foto;
+                                }
                                 $allImages[] = $imagePath;
                             }
                         }
@@ -299,7 +305,7 @@ try {
                     <div class="property-slider" data-property-id="<?= $property['id_inmueble'] ?>" data-current-index="0">
                         <div class="slider-images">
                             <?php foreach ($allImages as $index => $imageSrc): ?>
-                                <img src="<?= $imageSrc ?>"
+                                <img src="<?= htmlspecialchars($imageSrc) ?>"
                                      alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
                                      class="slider-image"
                                      onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
@@ -414,8 +420,14 @@ try {
                         if (is_array($fotos_table) && !empty($fotos_table)) {
                             foreach ($fotos_table as $foto) {
                                 if (!empty($foto)) {
-                                    // Use UPLOADS_URL constant for consistent image paths
-                                    $imagePath = UPLOADS_URL . 'properties/' . htmlspecialchars($foto);
+                                    // Check if it's a custom uploaded photo or default image
+                                    if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
+                                        // Default image from img/ folder
+                                        $imagePath = (strpos($foto, 'img/') === 0) ? BASE_URL . $foto : BASE_URL . 'img/' . $foto;
+                                    } else {
+                                        // Custom uploaded photo - use UPLOADS_URL constant
+                                        $imagePath = UPLOADS_URL . 'properties/' . $foto;
+                                    }
                                     $allImages_table[] = $imagePath;
                                 }
                             }
@@ -437,7 +449,7 @@ try {
                                     <div class="table-slider" data-property-id="table-<?= $property['id_inmueble'] ?>" data-current-index="0">
                                         <div class="table-slider-images">
                                             <?php foreach ($allImages_table as $index => $imageSrc): ?>
-                                                <img src="<?= $imageSrc ?>"
+                                                <img src="<?= htmlspecialchars($imageSrc) ?>"
                                                      alt="Propiedad <?= $property['id_inmueble'] ?>"
                                                      class="table-slider-image"
                                                      onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
