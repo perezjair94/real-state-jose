@@ -599,12 +599,16 @@ try {
                             ];
                             $allImages_table = $defaultImages;
                         }
-                        ?>
+                ?>
                         window.tableGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_table) ?>;
-                    <?php endforeach; ?>
+                <?php
+                    endforeach;
                 } catch (Exception $e) {
+                ?>
                     console.error('Error initializing table galleries:', '<?= $e->getMessage() ?>');
+                <?php
                 }
+                ?>
             </script>
         </div>
     </div>
