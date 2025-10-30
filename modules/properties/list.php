@@ -251,27 +251,38 @@ try {
             <div class="property-card">
                 <div class="image-container">
                     <?php
-                    // Get property image - only first image
+                    // Get all property images for carousel
                     $fotos = null;
-                    $imageUrl = '/img/casa1.jpeg'; // Default fallback
+                    $allImages = [];
 
                     // Safely decode JSON photos
                     if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
                         $fotos = json_decode($property['fotos'], true);
                     }
 
-                    // Get first image if available
+                    // Build image array
                     if (is_array($fotos) && !empty($fotos)) {
-                        $firstFoto = $fotos[0];
-                        if (!empty($firstFoto)) {
-                            if (strpos($firstFoto, 'img/') === 0 || strpos($firstFoto, 'casa') !== false) {
-                                // Default image from img/ folder
-                                $imageUrl = (strpos($firstFoto, 'img/') === 0) ? $firstFoto : '/img/' . $firstFoto;
-                            } else {
-                                // Custom uploaded photo
-                                $imageUrl = '/assets/uploads/properties/' . $firstFoto;
+                        foreach ($fotos as $foto) {
+                            if (!empty($foto)) {
+                                if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
+                                    // Default image from img/ folder
+                                    $imagePath = (strpos($foto, 'img/') === 0) ? $foto : '/img/' . $foto;
+                                } else {
+                                    // Custom uploaded photo
+                                    $imagePath = '/assets/uploads/properties/' . $foto;
+                                }
+                                $allImages[] = $imagePath;
                             }
                         }
+                    }
+
+                    // If no images, use default images
+                    if (empty($allImages)) {
+                        $allImages = [
+                            '/img/casa1.jpeg',
+                            '/img/casa2.jpg',
+                            '/img/casa3.jpeg'
+                        ];
                     }
 
                     // Determine tag class based on property status
@@ -285,12 +296,35 @@ try {
                     }
                     ?>
 
-                    <!-- Single Image (No Carousel) -->
-                    <div class="image-container-simple">
-                        <img src="<?= htmlspecialchars($imageUrl) ?>"
+                    <!-- Card Image Gallery with Carousel -->
+                    <div class="card-image-gallery" id="card-gallery-<?= $property['id_inmueble'] ?>">
+                        <img id="card-gallery-img-<?= $property['id_inmueble'] ?>"
+                             src="<?= htmlspecialchars($allImages[0]) ?>"
                              alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
                              onerror="this.src='/img/casa1.jpeg'"
                              style="width: 100%; height: 100%; object-fit: cover;">
+
+                        <?php if (count($allImages) > 1): ?>
+                            <button class="card-gallery-nav prev"
+                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, -1)" type="button">
+                                ‹
+                            </button>
+                            <button class="card-gallery-nav next"
+                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, 1)" type="button">
+                                ›
+                            </button>
+
+                            <div class="card-gallery-controls">
+                                <?php for ($i = 0; $i < count($allImages); $i++): ?>
+                                    <div class="card-gallery-dot <?= $i === 0 ? 'active' : '' ?>"
+                                         onclick="showCardImage(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></div>
+                                <?php endfor; ?>
+                            </div>
+
+                            <div class="card-photo-count">
+                                <span class="current-photo">1</span> / <?= count($allImages) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <span class="tag <?= $tagClass ?>">
@@ -481,10 +515,10 @@ try {
                 </tbody>
             </table>
 
-            <!-- Initialize table gallery images -->
+            <!-- Initialize card and table gallery images -->
             <script>
                 <?php
-                // Re-fetch properties to initialize table gallery images
+                // Re-fetch properties to initialize gallery images
                 try {
                     $db = new Database();
                     $pdo = $db->getConnection();
@@ -522,7 +556,7 @@ try {
 
                     $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
 
-                    // Get properties for table gallery initialization
+                    // Get properties for gallery initialization
                     $sql = "SELECT id_inmueble, fotos FROM inmueble
                             {$whereClause}
                             ORDER BY {$sortBy} {$sortOrder}
@@ -533,45 +567,47 @@ try {
 
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute($params);
-                    $tableProperties = $stmt->fetchAll();
+                    $galleryProperties = $stmt->fetchAll();
 
-                    // Initialize each property's table gallery images
-                    foreach ($tableProperties as $prop):
-                        $fotos_table = null;
-                        $allImages_table = [];
+                    // Initialize each property's gallery images (both card and table)
+                    foreach ($galleryProperties as $prop):
+                        $fotos_gallery = null;
+                        $allImages_gallery = [];
 
                         if (!empty($prop['fotos']) && $prop['fotos'] !== 'null') {
-                            $fotos_table = json_decode($prop['fotos'], true);
+                            $fotos_gallery = json_decode($prop['fotos'], true);
                         }
 
-                        if (is_array($fotos_table) && !empty($fotos_table)) {
-                            foreach ($fotos_table as $foto) {
+                        if (is_array($fotos_gallery) && !empty($fotos_gallery)) {
+                            foreach ($fotos_gallery as $foto) {
                                 if (!empty($foto)) {
                                     if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
-                                        $imagePath = (strpos($foto, 'img/') === 0) ? BASE_URL . $foto : BASE_URL . 'img/' . $foto;
+                                        $imagePath = (strpos($foto, 'img/') === 0) ? $foto : '/img/' . $foto;
                                     } else {
-                                        $imagePath = UPLOADS_URL . 'properties/' . $foto;
+                                        $imagePath = '/assets/uploads/properties/' . $foto;
                                     }
-                                    $allImages_table[] = $imagePath;
+                                    $allImages_gallery[] = $imagePath;
                                 }
                             }
                         }
 
-                        if (empty($allImages_table)) {
-                            $defaultImages = [
+                        if (empty($allImages_gallery)) {
+                            $allImages_gallery = [
                                 '/img/casa1.jpeg',
                                 '/img/casa2.jpg',
                                 '/img/casa3.jpeg'
                             ];
-                            $allImages_table = $defaultImages;
                         }
                 ?>
-                        window.tableGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_table) ?>;
+                        // Initialize card gallery images
+                        window.cardGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_gallery) ?>;
+                        // Initialize table gallery images
+                        window.tableGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_gallery) ?>;
                 <?php
                     endforeach;
                 } catch (Exception $e) {
                 ?>
-                    console.error('Error initializing table galleries:', '<?= $e->getMessage() ?>');
+                    console.error('Error initializing galleries:', '<?= $e->getMessage() ?>');
                 <?php
                 }
                 ?>
@@ -1017,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* ========================================
-   IMAGE GALLERY STYLES (like client detail page)
+   CARD IMAGE GALLERY STYLES (with carousel)
    ======================================== */
 .property-card .image-container {
     position: relative;
@@ -1027,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #e0e0e0;
 }
 
-.image-gallery {
+.card-image-gallery {
     position: relative;
     width: 100%;
     height: 100%;
@@ -1035,57 +1071,94 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #e0e0e0;
 }
 
-.image-gallery img {
+.card-image-gallery img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: opacity 0.3s ease;
 }
 
-.gallery-controls {
+.card-gallery-controls {
     position: absolute;
-    bottom: 20px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    z-index: 10;
 }
 
-.gallery-dot {
-    width: 12px;
-    height: 12px;
+.card-gallery-dot {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: rgba(255,255,255,0.5);
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.8);
 }
 
-.gallery-dot.active {
-    background: white;
+.card-gallery-dot:hover {
+    background: rgba(255,255,255,0.8);
+    transform: scale(1.2);
 }
 
-.gallery-nav {
+.card-gallery-dot.active {
+    background: #00de55;
+    border-color: #00de55;
+    width: 24px;
+    border-radius: 5px;
+}
+
+.card-gallery-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
     color: white;
-    border: none;
-    padding: 15px 20px;
-    font-size: 24px;
+    border: 1px solid rgba(255,255,255,0.8);
+    padding: 12px 16px;
+    font-size: 20px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    z-index: 20;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
 }
 
-.gallery-nav:hover {
-    background: rgba(0,0,0,0.7);
+.card-gallery-nav:hover {
+    background: rgba(0, 222, 85, 0.95);
+    border-color: #00de55;
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 3px 8px rgba(0, 222, 85, 0.5);
 }
 
-.gallery-nav.prev {
+.card-gallery-nav.prev {
     left: 10px;
 }
 
-.gallery-nav.next {
+.card-gallery-nav.next {
     right: 10px;
+}
+
+.card-photo-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 10;
+    font-weight: 600;
+    font-family: monospace;
 }
 
 /* Status Tag */
@@ -1459,7 +1532,7 @@ const cardGalleryIndices = {};
 
 // Card Gallery - Change image by clicking arrows
 function changeCardImage(propertyId, direction) {
-    const images = window[`galleryImages_${propertyId}`];
+    const images = window[`cardGalleryImages_${propertyId}`];
     if (!images || images.length <= 1) return;
 
     // Initialize index if not exists
@@ -1481,22 +1554,28 @@ function changeCardImage(propertyId, direction) {
 
 // Card Gallery - Show specific image by clicking dots
 function showCardImage(propertyId, index) {
-    const images = window[`galleryImages_${propertyId}`];
+    const images = window[`cardGalleryImages_${propertyId}`];
     if (!images || images.length === 0) return;
 
     cardGalleryIndices[propertyId] = index;
-    const imgElement = document.getElementById(`gallery-img-${propertyId}`);
+    const imgElement = document.getElementById(`card-gallery-img-${propertyId}`);
     if (imgElement) {
         imgElement.src = images[index];
     }
 
     // Update active dot
-    const gallery = document.getElementById(`gallery-${propertyId}`);
+    const gallery = document.getElementById(`card-gallery-${propertyId}`);
     if (gallery) {
-        const dots = gallery.querySelectorAll('.gallery-dot');
+        const dots = gallery.querySelectorAll('.card-gallery-dot');
         dots.forEach((dot, i) => {
             dot.classList.toggle('active', i === index);
         });
+    }
+
+    // Update photo counter
+    const photoCounter = gallery?.querySelector('.current-photo');
+    if (photoCounter) {
+        photoCounter.textContent = index + 1;
     }
 }
 
