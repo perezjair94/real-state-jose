@@ -251,43 +251,27 @@ try {
             <div class="property-card">
                 <div class="image-container">
                     <?php
-                    // Get property images from JSON or use default based on property rotation
+                    // Get property image - only first image
                     $fotos = null;
-                    $hasCustomPhoto = false;
-                    $allImages = [];
+                    $imageUrl = '/img/casa1.jpeg'; // Default fallback
 
                     // Safely decode JSON photos
                     if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
                         $fotos = json_decode($property['fotos'], true);
                     }
 
-                    // Build images array
+                    // Get first image if available
                     if (is_array($fotos) && !empty($fotos)) {
-                        foreach ($fotos as $foto) {
-                            if (!empty($foto)) {
-                                // Check if it's a custom uploaded photo or default image
-                                if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
-                                    // Default image from img/ folder
-                                    $imagePath = (strpos($foto, 'img/') === 0) ? BASE_URL . $foto : BASE_URL . 'img/' . $foto;
-                                } else {
-                                    // Custom uploaded photo - use UPLOADS_URL constant
-                                    $imagePath = UPLOADS_URL . 'properties/' . $foto;
-                                }
-                                $allImages[] = $imagePath;
+                        $firstFoto = $fotos[0];
+                        if (!empty($firstFoto)) {
+                            if (strpos($firstFoto, 'img/') === 0 || strpos($firstFoto, 'casa') !== false) {
+                                // Default image from img/ folder
+                                $imageUrl = (strpos($firstFoto, 'img/') === 0) ? $firstFoto : '/img/' . $firstFoto;
+                            } else {
+                                // Custom uploaded photo
+                                $imageUrl = '/assets/uploads/properties/' . $firstFoto;
                             }
                         }
-                        $hasCustomPhoto = !empty($allImages);
-                    }
-
-                    // If no custom photos, use default images
-                    if (empty($allImages)) {
-                        $defaultImages = [
-                            '/img/casa1.jpeg',
-                            '/img/casa2.jpg',
-                            '/img/casa3.jpeg'
-                        ];
-                        // Add all default images so carousel works in cards too
-                        $allImages = $defaultImages;
                     }
 
                     // Determine tag class based on property status
@@ -301,30 +285,12 @@ try {
                     }
                     ?>
 
-                    <!-- Image Gallery (Same as table) -->
-                    <div class="image-gallery" id="gallery-<?= $property['id_inmueble'] ?>">
-                        <img id="gallery-img-<?= $property['id_inmueble'] ?>"
-                             src="<?= htmlspecialchars($allImages[0]) ?>"
+                    <!-- Single Image (No Carousel) -->
+                    <div class="image-container-simple">
+                        <img src="<?= htmlspecialchars($imageUrl) ?>"
                              alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
-                             onerror="this.src='/img/casa1.jpeg'">
-
-                        <?php if (count($allImages) > 1): ?>
-                            <button class="gallery-nav prev"
-                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, -1)" type="button">
-                                ‹
-                            </button>
-                            <button class="gallery-nav next"
-                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, 1)" type="button">
-                                ›
-                            </button>
-
-                            <div class="gallery-controls">
-                                <?php for ($i = 0; $i < count($allImages); $i++): ?>
-                                    <div class="gallery-dot <?= $i === 0 ? 'active' : '' ?>"
-                                         onclick="showCardImage(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></div>
-                                <?php endfor; ?>
-                            </div>
-                        <?php endif; ?>
+                             onerror="this.src='/img/casa1.jpeg'"
+                             style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
 
                     <span class="tag <?= $tagClass ?>">
@@ -374,46 +340,6 @@ try {
             </div>
             <?php endforeach; ?>
         </div>
-
-        <!-- Initialize card gallery images -->
-        <script>
-            <?php
-            // Initialize gallery images for each card
-            foreach ($properties as $property):
-                $fotos = null;
-                $allImages = [];
-
-                if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
-                    $fotos = json_decode($property['fotos'], true);
-                }
-
-                if (is_array($fotos) && !empty($fotos)) {
-                    foreach ($fotos as $foto) {
-                        if (!empty($foto)) {
-                            if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
-                                $imagePath = (strpos($foto, 'img/') === 0) ? $foto : $foto;
-                            } else {
-                                $imagePath = '/assets/uploads/properties/' . $foto;
-                            }
-                            $allImages[] = $imagePath;
-                        }
-                    }
-                }
-
-                if (empty($allImages)) {
-                    $defaultImages = [
-                        '/img/casa1.jpeg',
-                        '/img/casa2.jpg',
-                        '/img/casa3.jpeg'
-                    ];
-                    $allImages = $defaultImages;
-                }
-            ?>
-                window.galleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages) ?>;
-            <?php
-            endforeach;
-            ?>
-        </script>
     </div>
 
     <!-- Properties Table (Original View) -->
