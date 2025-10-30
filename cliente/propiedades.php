@@ -16,9 +16,11 @@ requireRole('cliente');
 $user = getCurrentUser();
 
 // Filtros
-$tipo = $_GET['tipo'] ?? '';
-$ciudad = $_GET['ciudad'] ?? '';
-$precio_max = $_GET['precio_max'] ?? '';
+$searchTerm = $_GET['search'] ?? '';
+$typeFilter = $_GET['type'] ?? '';
+$cityFilter = $_GET['city'] ?? '';
+$priceMin = $_GET['price_min'] ?? '';
+$priceMax = $_GET['price_max'] ?? '';
 
 try {
     $db = new Database();
@@ -28,19 +30,31 @@ try {
     $sql = "SELECT * FROM inmueble WHERE estado = 'Disponible'";
     $params = [];
 
-    if ($tipo) {
+    if (!empty($searchTerm)) {
+        $sql .= " AND (direccion LIKE ? OR descripcion LIKE ?)";
+        $searchWildcard = "%{$searchTerm}%";
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+    }
+
+    if (!empty($typeFilter)) {
         $sql .= " AND tipo_inmueble = ?";
-        $params[] = $tipo;
+        $params[] = $typeFilter;
     }
 
-    if ($ciudad) {
+    if (!empty($cityFilter)) {
         $sql .= " AND ciudad LIKE ?";
-        $params[] = "%{$ciudad}%";
+        $params[] = "%{$cityFilter}%";
     }
 
-    if ($precio_max) {
+    if (!empty($priceMin)) {
+        $sql .= " AND precio >= ?";
+        $params[] = (float)$priceMin;
+    }
+
+    if (!empty($priceMax)) {
         $sql .= " AND precio <= ?";
-        $params[] = $precio_max;
+        $params[] = (float)$priceMax;
     }
 
     $sql .= " ORDER BY created_at DESC";
@@ -153,6 +167,17 @@ try {
         .filter-group input:focus {
             outline: none;
             border-color: #00de55;
+        }
+
+        /* Estilos para inputs de rango de precio */
+        .filter-group > div input {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .filter-group > div span {
+            white-space: nowrap;
+            font-weight: 600;
         }
 
         .btn-filter {
@@ -315,25 +340,38 @@ try {
         <div class="filters">
             <h2>Filtrar Propiedades</h2>
             <form method="GET" action="">
+                <!-- Primera fila de filtros -->
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>Tipo de Inmueble</label>
-                        <select name="tipo">
+                        <label for="search">Buscar por dirección o descripción:</label>
+                        <input type="text"
+                               id="search"
+                               name="search"
+                               value="<?= htmlspecialchars($searchTerm) ?>"
+                               placeholder="Ingrese términos de búsqueda...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="type">Tipo de Inmueble:</label>
+                        <select id="type" name="type">
                             <option value="">Todos los tipos</option>
                             <?php foreach (PROPERTY_TYPES as $key => $label): ?>
-                                <option value="<?= $key ?>" <?= $tipo === $key ? 'selected' : '' ?>>
+                                <option value="<?= $key ?>" <?= $typeFilter === $key ? 'selected' : '' ?>>
                                     <?= $label ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+                </div>
 
+                <!-- Segunda fila de filtros -->
+                <div class="filter-row">
                     <div class="filter-group">
-                        <label>Ciudad</label>
-                        <select name="ciudad">
+                        <label for="city">Ciudad:</label>
+                        <select id="city" name="city">
                             <option value="">Todas las ciudades</option>
                             <?php foreach ($ciudades as $c): ?>
-                                <option value="<?= htmlspecialchars($c) ?>" <?= $ciudad === $c ? 'selected' : '' ?>>
+                                <option value="<?= htmlspecialchars($c) ?>" <?= $cityFilter === $c ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($c) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -341,15 +379,31 @@ try {
                     </div>
 
                     <div class="filter-group">
-                        <label>Precio Máximo</label>
-                        <input type="number" name="precio_max" placeholder="Ej: 500000000"
-                               value="<?= htmlspecialchars($precio_max) ?>">
+                        <label>Rango de Precio:</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number"
+                                   id="price_min"
+                                   name="price_min"
+                                   value="<?= htmlspecialchars($priceMin) ?>"
+                                   placeholder="Mínimo"
+                                   min="0"
+                                   step="1000000">
+                            <span style="color: #666;">hasta</span>
+                            <input type="number"
+                                   id="price_max"
+                                   name="price_max"
+                                   value="<?= htmlspecialchars($priceMax) ?>"
+                                   placeholder="Máximo"
+                                   min="0"
+                                   step="1000000">
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="btn-filter">Aplicar Filtros</button>
-                    <a href="propiedades.php" class="btn-clear" style="text-decoration: none; display: inline-block;">Limpiar Filtros</a>
+                <!-- Botones de acción -->
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-filter">Buscar</button>
+                    <a href="propiedades.php" class="btn-clear" style="text-decoration: none; display: inline-flex; align-items: center;">Limpiar Filtros</a>
                 </div>
             </form>
         </div>
