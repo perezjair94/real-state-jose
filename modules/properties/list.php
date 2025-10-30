@@ -429,8 +429,8 @@ try {
                                 BASE_URL . 'img/casa2.jpg',
                                 BASE_URL . 'img/casa3.jpeg'
                             ];
-                            $imageIndex = $property['id_inmueble'] % count($defaultImages);
-                            $allImages_table[] = $defaultImages[$imageIndex];
+                            // Add all default images so carousel works in table too
+                            $allImages_table = $defaultImages;
                         }
                         ?>
                         <tr>
@@ -459,12 +459,6 @@ try {
                                         </div>
                                     <?php endif; ?>
                                 </div>
-
-                                <script>
-                                    // Inline gallery images for table <?= $property['id_inmueble'] ?>
-                                    window.tableGalleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages_table) ?>;
-                                    window.tableCurrentIndex_<?= $property['id_inmueble'] ?> = 0;
-                                </script>
                             </td>
                             <td>
                                 <strong class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
@@ -520,6 +514,98 @@ try {
                     <?php endforeach; ?>
                 </tbody>
             </table>
+
+            <!-- Initialize table gallery images -->
+            <script>
+                <?php
+                // Re-fetch properties to initialize table gallery images
+                try {
+                    $db = new Database();
+                    $pdo = $db->getConnection();
+
+                    // Build the WHERE clause (same as above)
+                    $whereConditions = [];
+                    $params = [];
+
+                    if (!empty($searchTerm)) {
+                        $whereConditions[] = "(direccion LIKE ? OR descripcion LIKE ?)";
+                        $searchWildcard = "%{$searchTerm}%";
+                        $params[] = $searchWildcard;
+                        $params[] = $searchWildcard;
+                    }
+
+                    if (!empty($statusFilter)) {
+                        $whereConditions[] = "estado = ?";
+                        $params[] = $statusFilter;
+                    }
+
+                    if (!empty($typeFilter)) {
+                        $whereConditions[] = "tipo_inmueble = ?";
+                        $params[] = $typeFilter;
+                    }
+
+                    if (!empty($priceMin)) {
+                        $whereConditions[] = "precio >= ?";
+                        $params[] = (float)$priceMin;
+                    }
+
+                    if (!empty($priceMax)) {
+                        $whereConditions[] = "precio <= ?";
+                        $params[] = (float)$priceMax;
+                    }
+
+                    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+                    // Get properties for table gallery initialization
+                    $sql = "SELECT id_inmueble, fotos FROM inmueble
+                            {$whereClause}
+                            ORDER BY {$sortBy} {$sortOrder}
+                            LIMIT ? OFFSET ?";
+
+                    $params[] = RECORDS_PER_PAGE;
+                    $params[] = $offset;
+
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($params);
+                    $tableProperties = $stmt->fetchAll();
+
+                    // Initialize each property's table gallery images
+                    foreach ($tableProperties as $prop):
+                        $fotos_table = null;
+                        $allImages_table = [];
+
+                        if (!empty($prop['fotos']) && $prop['fotos'] !== 'null') {
+                            $fotos_table = json_decode($prop['fotos'], true);
+                        }
+
+                        if (is_array($fotos_table) && !empty($fotos_table)) {
+                            foreach ($fotos_table as $foto) {
+                                if (!empty($foto)) {
+                                    if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
+                                        $imagePath = (strpos($foto, 'img/') === 0) ? BASE_URL . $foto : BASE_URL . 'img/' . $foto;
+                                    } else {
+                                        $imagePath = UPLOADS_URL . 'properties/' . $foto;
+                                    }
+                                    $allImages_table[] = $imagePath;
+                                }
+                            }
+                        }
+
+                        if (empty($allImages_table)) {
+                            $defaultImages = [
+                                BASE_URL . 'img/casa1.jpeg',
+                                BASE_URL . 'img/casa2.jpg',
+                                BASE_URL . 'img/casa3.jpeg'
+                            ];
+                            $allImages_table = $defaultImages;
+                        }
+                        ?>
+                        window.tableGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_table) ?>;
+                    <?php endforeach; ?>
+                } catch (Exception $e) {
+                    console.error('Error initializing table galleries:', '<?= $e->getMessage() ?>');
+                }
+            </script>
         </div>
     </div>
 
