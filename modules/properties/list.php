@@ -301,16 +301,22 @@ try {
                     }
                     ?>
 
-                    <!-- Image Gallery (Simple - like client detail page) -->
+                    <!-- Image Gallery (Same as table) -->
                     <div class="image-gallery" id="gallery-<?= $property['id_inmueble'] ?>">
                         <img id="gallery-img-<?= $property['id_inmueble'] ?>"
                              src="<?= htmlspecialchars($allImages[0]) ?>"
                              alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
-                             onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+                             onerror="this.src='/img/casa1.jpeg'">
 
                         <?php if (count($allImages) > 1): ?>
-                            <button class="gallery-nav prev" onclick="changeCardImage(<?= $property['id_inmueble'] ?>, -1)" type="button">‹</button>
-                            <button class="gallery-nav next" onclick="changeCardImage(<?= $property['id_inmueble'] ?>, 1)" type="button">›</button>
+                            <button class="gallery-nav prev"
+                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, -1)" type="button">
+                                ‹
+                            </button>
+                            <button class="gallery-nav next"
+                                    onclick="changeCardImage(<?= $property['id_inmueble'] ?>, 1)" type="button">
+                                ›
+                            </button>
 
                             <div class="gallery-controls">
                                 <?php for ($i = 0; $i < count($allImages); $i++): ?>
@@ -320,12 +326,6 @@ try {
                             </div>
                         <?php endif; ?>
                     </div>
-
-                    <script>
-                        // Inline gallery images for card <?= $property['id_inmueble'] ?>
-                        window.galleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages) ?>;
-                        window.currentIndex_<?= $property['id_inmueble'] ?> = 0;
-                    </script>
 
                     <span class="tag <?= $tagClass ?>">
                         <?= htmlspecialchars(strtoupper($property['estado'])) ?>
@@ -374,6 +374,46 @@ try {
             </div>
             <?php endforeach; ?>
         </div>
+
+        <!-- Initialize card gallery images -->
+        <script>
+            <?php
+            // Initialize gallery images for each card
+            foreach ($properties as $property):
+                $fotos = null;
+                $allImages = [];
+
+                if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
+                    $fotos = json_decode($property['fotos'], true);
+                }
+
+                if (is_array($fotos) && !empty($fotos)) {
+                    foreach ($fotos as $foto) {
+                        if (!empty($foto)) {
+                            if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
+                                $imagePath = (strpos($foto, 'img/') === 0) ? $foto : $foto;
+                            } else {
+                                $imagePath = '/assets/uploads/properties/' . $foto;
+                            }
+                            $allImages[] = $imagePath;
+                        }
+                    }
+                }
+
+                if (empty($allImages)) {
+                    $defaultImages = [
+                        '/img/casa1.jpeg',
+                        '/img/casa2.jpg',
+                        '/img/casa3.jpeg'
+                    ];
+                    $allImages = $defaultImages;
+                }
+            ?>
+                window.galleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages) ?>;
+            <?php
+            endforeach;
+            ?>
+        </script>
     </div>
 
     <!-- Properties Table (Original View) -->
