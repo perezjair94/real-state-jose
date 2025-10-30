@@ -301,32 +301,31 @@ try {
                     }
                     ?>
 
-                    <!-- Image Carousel (Simple Slider) -->
-                    <div class="carousel" data-property-id="<?= $property['id_inmueble'] ?>">
-                        <div class="carousel-wrapper">
-                            <div class="carousel-track" style="transform: translateX(0%);">
-                                <?php foreach ($allImages as $index => $imageSrc): ?>
-                                    <div class="carousel-slide">
-                                        <img src="<?= htmlspecialchars($imageSrc) ?>"
-                                             alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?> - Imagen <?= $index + 1 ?>"
-                                             loading="lazy"
-                                             onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
+                    <!-- Image Gallery (Simple - like client detail page) -->
+                    <div class="image-gallery" id="gallery-<?= $property['id_inmueble'] ?>">
+                        <img id="gallery-img-<?= $property['id_inmueble'] ?>"
+                             src="<?= htmlspecialchars($allImages[0]) ?>"
+                             alt="<?= htmlspecialchars($property['tipo_inmueble']) ?> en <?= htmlspecialchars($property['ciudad']) ?>"
+                             onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
 
                         <?php if (count($allImages) > 1): ?>
-                            <button class="carousel-btn carousel-prev" onclick="moveCarousel(<?= $property['id_inmueble'] ?>, -1)" type="button">❮</button>
-                            <button class="carousel-btn carousel-next" onclick="moveCarousel(<?= $property['id_inmueble'] ?>, 1)" type="button">❯</button>
+                            <button class="gallery-nav prev" onclick="changeCardImage(<?= $property['id_inmueble'] ?>, -1)" type="button">‹</button>
+                            <button class="gallery-nav next" onclick="changeCardImage(<?= $property['id_inmueble'] ?>, 1)" type="button">›</button>
 
-                            <div class="carousel-dots">
+                            <div class="gallery-controls">
                                 <?php for ($i = 0; $i < count($allImages); $i++): ?>
-                                    <span class="dot <?= $i === 0 ? 'active' : '' ?>" onclick="goToSlide(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></span>
+                                    <div class="gallery-dot <?= $i === 0 ? 'active' : '' ?>"
+                                         onclick="showCardImage(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></div>
                                 <?php endfor; ?>
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <script>
+                        // Inline gallery images for card <?= $property['id_inmueble'] ?>
+                        window.galleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages) ?>;
+                        window.currentIndex_<?= $property['id_inmueble'] ?> = 0;
+                    </script>
 
                     <span class="tag <?= $tagClass ?>">
                         <?= htmlspecialchars(strtoupper($property['estado'])) ?>
@@ -436,40 +435,36 @@ try {
                         ?>
                         <tr>
                             <td class="table-image-cell">
-                                <div class="table-image-container">
-                                    <div class="table-slider" data-property-id="table-<?= $property['id_inmueble'] ?>" data-current-index="0">
-                                        <div class="table-slider-images">
-                                            <?php foreach ($allImages_table as $index => $imageSrc): ?>
-                                                <img src="<?= htmlspecialchars($imageSrc) ?>"
-                                                     alt="Propiedad <?= $property['id_inmueble'] ?>"
-                                                     class="table-slider-image"
-                                                     onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
-                                            <?php endforeach; ?>
+                                <div class="table-image-gallery" id="table-gallery-<?= $property['id_inmueble'] ?>">
+                                    <img id="table-gallery-img-<?= $property['id_inmueble'] ?>"
+                                         src="<?= htmlspecialchars($allImages_table[0]) ?>"
+                                         alt="Propiedad <?= $property['id_inmueble'] ?>"
+                                         onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+
+                                    <?php if (count($allImages_table) > 1): ?>
+                                        <button class="table-gallery-nav prev"
+                                                onclick="changeTableImage(<?= $property['id_inmueble'] ?>, -1)" type="button">
+                                            ‹
+                                        </button>
+                                        <button class="table-gallery-nav next"
+                                                onclick="changeTableImage(<?= $property['id_inmueble'] ?>, 1)" type="button">
+                                            ›
+                                        </button>
+
+                                        <div class="table-gallery-controls">
+                                            <?php for ($i = 0; $i < count($allImages_table); $i++): ?>
+                                                <div class="table-gallery-dot <?= $i === 0 ? 'active' : '' ?>"
+                                                     onclick="showTableImage(<?= $property['id_inmueble'] ?>, <?= $i ?>)"></div>
+                                            <?php endfor; ?>
                                         </div>
-
-                                        <?php if (count($allImages_table) > 1): ?>
-                                            <button class="table-slider-nav table-slider-prev"
-                                                    onclick="changeSlide('table-<?= $property['id_inmueble'] ?>', -1)" type="button">
-                                                ‹
-                                            </button>
-                                            <button class="table-slider-nav table-slider-next"
-                                                    onclick="changeSlide('table-<?= $property['id_inmueble'] ?>', 1)" type="button">
-                                                ›
-                                            </button>
-
-                                            <div class="table-slider-dots">
-                                                <?php for ($i = 0; $i < count($allImages_table); $i++): ?>
-                                                    <span class="table-slider-dot <?= $i === 0 ? 'active' : '' ?>"
-                                                          onclick="goToSlide('table-<?= $property['id_inmueble'] ?>', <?= $i ?>)"></span>
-                                                <?php endfor; ?>
-                                            </div>
-
-                                            <span class="table-photo-count">
-                                                <span class="current-photo">1</span>/<?= count($allImages_table) ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
+                                    <?php endif; ?>
                                 </div>
+
+                                <script>
+                                    // Inline gallery images for table <?= $property['id_inmueble'] ?>
+                                    window.tableGalleryImages_<?= $property['id_inmueble'] ?> = <?= json_encode($allImages_table) ?>;
+                                    window.tableCurrentIndex_<?= $property['id_inmueble'] ?> = 0;
+                                </script>
                             </td>
                             <td>
                                 <strong class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
@@ -966,7 +961,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* ========================================
-   IMAGE CAROUSEL STYLES
+   IMAGE GALLERY STYLES (like client detail page)
    ======================================== */
 .property-card .image-container {
     position: relative;
@@ -976,109 +971,65 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #e0e0e0;
 }
 
-.carousel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-.carousel-wrapper {
+.image-gallery {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background: #e0e0e0;
 }
 
-.carousel-track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.4s ease-in-out;
-}
-
-.carousel-slide {
-    flex: 0 0 100%;
-    width: 100%;
-    height: 100%;
-}
-
-.carousel-slide img {
+.image-gallery img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
 }
 
-/* Carousel Navigation Buttons */
-.carousel-btn {
+.gallery-controls {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 20px;
-    cursor: pointer;
-    z-index: 10;
-    transition: all 0.3s ease;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.carousel-btn:hover {
-    background: rgba(0, 222, 85, 0.95);
-    border-color: #00de55;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 222, 85, 0.5);
-}
-
-.carousel-prev {
-    left: 10px;
-}
-
-.carousel-next {
-    right: 10px;
-}
-
-/* Carousel Dots */
-.carousel-dots {
-    position: absolute;
-    bottom: 12px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 6px;
-    z-index: 10;
+    gap: 10px;
 }
 
-.dot {
-    width: 8px;
-    height: 8px;
+.gallery-dot {
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255,255,255,0.5);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.3s;
 }
 
-.dot:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: scale(1.2);
+.gallery-dot.active {
+    background: white;
 }
 
-.dot.active {
-    background: #00de55;
-    border-color: #00de55;
-    width: 24px;
-    border-radius: 4px;
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.gallery-nav:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+.gallery-nav.prev {
+    left: 10px;
+}
+
+.gallery-nav.next {
+    right: 10px;
 }
 
 /* Status Tag */
@@ -1096,11 +1047,73 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* ========================================
-   TABLE IMAGE SLIDER STYLES - HORIZONTAL SLIDE
+   TABLE IMAGE GALLERY STYLES
    ======================================== */
 .table-image-cell {
     width: 120px;
     padding: 8px !important;
+}
+
+.table-image-gallery {
+    position: relative;
+    width: 100px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #e0e0e0;
+}
+
+.table-image-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.table-gallery-controls {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+}
+
+.table-gallery-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.table-gallery-dot.active {
+    background: white;
+}
+
+.table-gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.table-gallery-nav:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+.table-gallery-nav.prev {
+    left: 2px;
+}
+
+.table-gallery-nav.next {
+    right: 2px;
 }
 
 .table-image-container {
@@ -1383,3 +1396,188 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
+
+<script>
+// Store gallery images and current indices for each property
+const cardGalleries = {};
+const tableGalleries = {};
+
+/**
+ * Card Gallery Navigation - Change image in property cards
+ * @param {number} propertyId - The property ID
+ * @param {number} direction - Navigation direction (-1 for prev, 1 for next)
+ */
+function changeCardImage(propertyId, direction) {
+    // Initialize gallery if not exists
+    if (!cardGalleries[propertyId]) {
+        const imgElement = document.getElementById(`gallery-img-${propertyId}`);
+        const galleryDiv = imgElement ? imgElement.closest('.image-gallery') : null;
+
+        if (!galleryDiv) return;
+
+        const images = [];
+        const dots = galleryDiv.querySelectorAll('.gallery-dot');
+
+        // If we have dots, we have multiple images
+        if (dots.length > 1) {
+            // Extract images from data attribute or reconstruct from DOM
+            const navButtons = galleryDiv.querySelectorAll('.gallery-nav');
+            if (navButtons.length > 0) {
+                // Images exist, we just need to cycle
+                cardGalleries[propertyId] = {
+                    count: dots.length,
+                    currentIndex: 0
+                };
+            } else {
+                return; // Single image, no navigation needed
+            }
+        } else {
+            return; // Single image, no navigation needed
+        }
+    }
+
+    const gallery = cardGalleries[propertyId];
+    gallery.currentIndex += direction;
+
+    // Wrap around
+    if (gallery.currentIndex < 0) {
+        gallery.currentIndex = gallery.count - 1;
+    } else if (gallery.currentIndex >= gallery.count) {
+        gallery.currentIndex = 0;
+    }
+
+    showCardImage(propertyId, gallery.currentIndex);
+}
+
+/**
+ * Card Gallery - Show specific image
+ * @param {number} propertyId - The property ID
+ * @param {number} index - The image index to show
+ */
+function showCardImage(propertyId, index) {
+    const imgElement = document.getElementById(`gallery-img-${propertyId}`);
+    const galleryDiv = imgElement ? imgElement.closest('.image-gallery') : null;
+
+    if (!galleryDiv) return;
+
+    // Initialize gallery data
+    if (!cardGalleries[propertyId]) {
+        const dots = galleryDiv.querySelectorAll('.gallery-dot');
+        cardGalleries[propertyId] = {
+            count: dots.length,
+            currentIndex: 0
+        };
+    }
+
+    const gallery = cardGalleries[propertyId];
+    gallery.currentIndex = index % gallery.count;
+
+    // Find all images in this gallery (they're stored in script tags)
+    const scriptTags = galleryDiv.querySelectorAll('script[data-property-id="' + propertyId + '"]');
+    let images = [];
+
+    // Try to find images from window object (if stored during PHP render)
+    if (window[`galleryImages_${propertyId}`]) {
+        images = window[`galleryImages_${propertyId}`];
+    } else {
+        // Fallback: get image paths from onclick handlers
+        const dots = galleryDiv.querySelectorAll('.gallery-dot');
+        dots.forEach((dot, i) => {
+            // Store current image as reference for cycling
+            if (i === 0) {
+                images.push(imgElement.src);
+            }
+        });
+    }
+
+    // If we have images, update the src
+    if (images.length > 0) {
+        imgElement.src = images[gallery.currentIndex];
+    }
+
+    // Update active dot
+    const dots = galleryDiv.querySelectorAll('.gallery-dot');
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === gallery.currentIndex);
+    });
+}
+
+/**
+ * Table Gallery Navigation - Change image in table rows
+ * @param {number} propertyId - The property ID
+ * @param {number} direction - Navigation direction (-1 for prev, 1 for next)
+ */
+function changeTableImage(propertyId, direction) {
+    // Initialize gallery if not exists
+    if (!tableGalleries[propertyId]) {
+        const imgElement = document.getElementById(`table-gallery-img-${propertyId}`);
+        const galleryDiv = imgElement ? imgElement.closest('.table-image-gallery') : null;
+
+        if (!galleryDiv) return;
+
+        const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
+
+        if (dots.length > 1) {
+            tableGalleries[propertyId] = {
+                count: dots.length,
+                currentIndex: 0
+            };
+        } else {
+            return; // Single image, no navigation needed
+        }
+    }
+
+    const gallery = tableGalleries[propertyId];
+    gallery.currentIndex += direction;
+
+    // Wrap around
+    if (gallery.currentIndex < 0) {
+        gallery.currentIndex = gallery.count - 1;
+    } else if (gallery.currentIndex >= gallery.count) {
+        gallery.currentIndex = 0;
+    }
+
+    showTableImage(propertyId, gallery.currentIndex);
+}
+
+/**
+ * Table Gallery - Show specific image
+ * @param {number} propertyId - The property ID
+ * @param {number} index - The image index to show
+ */
+function showTableImage(propertyId, index) {
+    const imgElement = document.getElementById(`table-gallery-img-${propertyId}`);
+    const galleryDiv = imgElement ? imgElement.closest('.table-image-gallery') : null;
+
+    if (!galleryDiv) return;
+
+    // Initialize gallery data
+    if (!tableGalleries[propertyId]) {
+        const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
+        tableGalleries[propertyId] = {
+            count: dots.length,
+            currentIndex: 0
+        };
+    }
+
+    const gallery = tableGalleries[propertyId];
+    gallery.currentIndex = index % gallery.count;
+
+    // Get images from window object (if stored during PHP render)
+    let images = [];
+    if (window[`tableGalleryImages_${propertyId}`]) {
+        images = window[`tableGalleryImages_${propertyId}`];
+    }
+
+    // If we have images, update the src
+    if (images.length > 0) {
+        imgElement.src = images[gallery.currentIndex];
+    }
+
+    // Update active dot
+    const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === gallery.currentIndex);
+    });
+}
+</script>
