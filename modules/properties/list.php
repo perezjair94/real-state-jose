@@ -282,9 +282,9 @@ try {
                     // If no custom photos, use default images
                     if (empty($allImages)) {
                         $defaultImages = [
-                            BASE_URL . 'img/casa1.jpeg',
-                            BASE_URL . 'img/casa2.jpg',
-                            BASE_URL . 'img/casa3.jpeg'
+                            '/img/casa1.jpeg',
+                            '/img/casa2.jpg',
+                            '/img/casa3.jpeg'
                         ];
                         // Add all default images so carousel works in cards too
                         $allImages = $defaultImages;
@@ -425,9 +425,9 @@ try {
 
                         if (empty($allImages_table)) {
                             $defaultImages = [
-                                BASE_URL . 'img/casa1.jpeg',
-                                BASE_URL . 'img/casa2.jpg',
-                                BASE_URL . 'img/casa3.jpeg'
+                                '/img/casa1.jpeg',
+                                '/img/casa2.jpg',
+                                '/img/casa3.jpeg'
                             ];
                             // Add all default images so carousel works in table too
                             $allImages_table = $defaultImages;
@@ -593,9 +593,9 @@ try {
 
                         if (empty($allImages_table)) {
                             $defaultImages = [
-                                BASE_URL . 'img/casa1.jpeg',
-                                BASE_URL . 'img/casa2.jpg',
-                                BASE_URL . 'img/casa3.jpeg'
+                                '/img/casa1.jpeg',
+                                '/img/casa2.jpg',
+                                '/img/casa3.jpeg'
                             ];
                             $allImages_table = $defaultImages;
                         }
