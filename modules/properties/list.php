@@ -260,29 +260,22 @@ try {
                         $fotos = json_decode($property['fotos'], true);
                     }
 
-                    // Build image array
+                    // Build image array - Use same logic as cliente explorar propiedades
                     if (is_array($fotos) && !empty($fotos)) {
                         foreach ($fotos as $foto) {
                             if (!empty($foto)) {
-                                if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
-                                    // Default image from img/ folder
-                                    $imagePath = (strpos($foto, 'img/') === 0) ? $foto : '/img/' . $foto;
-                                } else {
-                                    // Custom uploaded photo
-                                    $imagePath = '/assets/uploads/properties/' . $foto;
-                                }
+                                // Custom uploaded photo
+                                $imagePath = '/assets/uploads/properties/' . htmlspecialchars($foto);
                                 $allImages[] = $imagePath;
                             }
                         }
                     }
 
-                    // If no images, use default images
+                    // If no images, use default images based on property rotation
                     if (empty($allImages)) {
-                        $allImages = [
-                            '/img/casa1.jpeg',
-                            '/img/casa2.jpg',
-                            '/img/casa3.jpeg'
-                        ];
+                        $defaultImages = ['/img/casa1.jpeg', '/img/casa2.jpg', '/img/casa3.jpeg'];
+                        $imageIndex = $property['id_inmueble'] % count($defaultImages);
+                        $allImages = [$defaultImages[$imageIndex]];
                     }
 
                     // Determine tag class based on property status
@@ -399,26 +392,23 @@ try {
                 <tbody>
                     <?php foreach ($properties as $property): ?>
                         <?php
-                        // Get property image - only first image
+                        // Get property image - only first image - Use same logic as cliente explorar propiedades
                         $fotos_table = null;
-                        $imageUrl_table = '/img/casa1.jpeg'; // Default fallback
+                        $imageUrl_table = null;
 
                         if (!empty($property['fotos']) && $property['fotos'] !== 'null') {
                             $fotos_table = json_decode($property['fotos'], true);
                         }
 
                         // Get first image if available
-                        if (is_array($fotos_table) && !empty($fotos_table)) {
-                            $firstFoto = $fotos_table[0];
-                            if (!empty($firstFoto)) {
-                                if (strpos($firstFoto, 'img/') === 0 || strpos($firstFoto, 'casa') !== false) {
-                                    // Default image from img/ folder
-                                    $imageUrl_table = (strpos($firstFoto, 'img/') === 0) ? $firstFoto : '/img/' . $firstFoto;
-                                } else {
-                                    // Custom uploaded photo
-                                    $imageUrl_table = '/assets/uploads/properties/' . $firstFoto;
-                                }
-                            }
+                        if (is_array($fotos_table) && !empty($fotos_table) && isset($fotos_table[0]) && !empty($fotos_table[0])) {
+                            // Custom uploaded photo
+                            $imageUrl_table = '/assets/uploads/properties/' . htmlspecialchars($fotos_table[0]);
+                        } else {
+                            // Default image based on property rotation
+                            $defaultImages_table = ['/img/casa1.jpeg', '/img/casa2.jpg', '/img/casa3.jpeg'];
+                            $imageIndex_table = $property['id_inmueble'] % count($defaultImages_table);
+                            $imageUrl_table = $defaultImages_table[$imageIndex_table];
                         }
                         ?>
                         <tr>
@@ -538,7 +528,7 @@ try {
                     $stmt->execute($params);
                     $cardProperties = $stmt->fetchAll();
 
-                    // Initialize each property's card gallery images
+                    // Initialize each property's card gallery images - Use same logic as cliente explorar propiedades
                     foreach ($cardProperties as $prop):
                         $fotos_card = null;
                         $allImages_card = [];
@@ -547,25 +537,22 @@ try {
                             $fotos_card = json_decode($prop['fotos'], true);
                         }
 
+                        // Build image array - same logic as cliente explorar propiedades
                         if (is_array($fotos_card) && !empty($fotos_card)) {
                             foreach ($fotos_card as $foto) {
                                 if (!empty($foto)) {
-                                    if (strpos($foto, 'img/') === 0 || strpos($foto, 'casa') !== false) {
-                                        $imagePath = (strpos($foto, 'img/') === 0) ? $foto : '/img/' . $foto;
-                                    } else {
-                                        $imagePath = '/assets/uploads/properties/' . $foto;
-                                    }
+                                    // Custom uploaded photo
+                                    $imagePath = '/assets/uploads/properties/' . htmlspecialchars($foto);
                                     $allImages_card[] = $imagePath;
                                 }
                             }
                         }
 
+                        // If no images, use default images based on property rotation
                         if (empty($allImages_card)) {
-                            $allImages_card = [
-                                '/img/casa1.jpeg',
-                                '/img/casa2.jpg',
-                                '/img/casa3.jpeg'
-                            ];
+                            $defaultImages_card = ['/img/casa1.jpeg', '/img/casa2.jpg', '/img/casa3.jpeg'];
+                            $imageIndex_card = $prop['id_inmueble'] % count($defaultImages_card);
+                            $allImages_card = [$defaultImages_card[$imageIndex_card]];
                         }
                 ?>
                         window.cardGalleryImages_<?= $prop['id_inmueble'] ?> = <?= json_encode($allImages_card) ?>;
