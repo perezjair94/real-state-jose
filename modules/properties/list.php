@@ -1398,186 +1398,95 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 
 <script>
-// Store gallery images and current indices for each property
-const cardGalleries = {};
-const tableGalleries = {};
+// Store current image indices for card galleries
+const cardGalleryIndices = {};
 
-/**
- * Card Gallery Navigation - Change image in property cards
- * @param {number} propertyId - The property ID
- * @param {number} direction - Navigation direction (-1 for prev, 1 for next)
- */
+// Card Gallery - Change image by clicking arrows
 function changeCardImage(propertyId, direction) {
-    // Initialize gallery if not exists
-    if (!cardGalleries[propertyId]) {
-        const imgElement = document.getElementById(`gallery-img-${propertyId}`);
-        const galleryDiv = imgElement ? imgElement.closest('.image-gallery') : null;
+    const images = window[`galleryImages_${propertyId}`];
+    if (!images || images.length <= 1) return;
 
-        if (!galleryDiv) return;
-
-        const images = [];
-        const dots = galleryDiv.querySelectorAll('.gallery-dot');
-
-        // If we have dots, we have multiple images
-        if (dots.length > 1) {
-            // Extract images from data attribute or reconstruct from DOM
-            const navButtons = galleryDiv.querySelectorAll('.gallery-nav');
-            if (navButtons.length > 0) {
-                // Images exist, we just need to cycle
-                cardGalleries[propertyId] = {
-                    count: dots.length,
-                    currentIndex: 0
-                };
-            } else {
-                return; // Single image, no navigation needed
-            }
-        } else {
-            return; // Single image, no navigation needed
-        }
+    // Initialize index if not exists
+    if (cardGalleryIndices[propertyId] === undefined) {
+        cardGalleryIndices[propertyId] = 0;
     }
 
-    const gallery = cardGalleries[propertyId];
-    gallery.currentIndex += direction;
+    cardGalleryIndices[propertyId] += direction;
 
-    // Wrap around
-    if (gallery.currentIndex < 0) {
-        gallery.currentIndex = gallery.count - 1;
-    } else if (gallery.currentIndex >= gallery.count) {
-        gallery.currentIndex = 0;
+    // Wrap around (loop)
+    if (cardGalleryIndices[propertyId] < 0) {
+        cardGalleryIndices[propertyId] = images.length - 1;
+    } else if (cardGalleryIndices[propertyId] >= images.length) {
+        cardGalleryIndices[propertyId] = 0;
     }
 
-    showCardImage(propertyId, gallery.currentIndex);
+    showCardImage(propertyId, cardGalleryIndices[propertyId]);
 }
 
-/**
- * Card Gallery - Show specific image
- * @param {number} propertyId - The property ID
- * @param {number} index - The image index to show
- */
+// Card Gallery - Show specific image by clicking dots
 function showCardImage(propertyId, index) {
+    const images = window[`galleryImages_${propertyId}`];
+    if (!images || images.length === 0) return;
+
+    cardGalleryIndices[propertyId] = index;
     const imgElement = document.getElementById(`gallery-img-${propertyId}`);
-    const galleryDiv = imgElement ? imgElement.closest('.image-gallery') : null;
-
-    if (!galleryDiv) return;
-
-    // Initialize gallery data
-    if (!cardGalleries[propertyId]) {
-        const dots = galleryDiv.querySelectorAll('.gallery-dot');
-        cardGalleries[propertyId] = {
-            count: dots.length,
-            currentIndex: 0
-        };
+    if (imgElement) {
+        imgElement.src = images[index];
     }
 
-    const gallery = cardGalleries[propertyId];
-    gallery.currentIndex = index % gallery.count;
-
-    // Find all images in this gallery (they're stored in script tags)
-    const scriptTags = galleryDiv.querySelectorAll('script[data-property-id="' + propertyId + '"]');
-    let images = [];
-
-    // Try to find images from window object (if stored during PHP render)
-    if (window[`galleryImages_${propertyId}`]) {
-        images = window[`galleryImages_${propertyId}`];
-    } else {
-        // Fallback: get image paths from onclick handlers
-        const dots = galleryDiv.querySelectorAll('.gallery-dot');
+    // Update active dot
+    const gallery = document.getElementById(`gallery-${propertyId}`);
+    if (gallery) {
+        const dots = gallery.querySelectorAll('.gallery-dot');
         dots.forEach((dot, i) => {
-            // Store current image as reference for cycling
-            if (i === 0) {
-                images.push(imgElement.src);
-            }
+            dot.classList.toggle('active', i === index);
         });
     }
-
-    // If we have images, update the src
-    if (images.length > 0) {
-        imgElement.src = images[gallery.currentIndex];
-    }
-
-    // Update active dot
-    const dots = galleryDiv.querySelectorAll('.gallery-dot');
-    dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === gallery.currentIndex);
-    });
 }
 
-/**
- * Table Gallery Navigation - Change image in table rows
- * @param {number} propertyId - The property ID
- * @param {number} direction - Navigation direction (-1 for prev, 1 for next)
- */
+// Store current image indices for table galleries
+const tableGalleryIndices = {};
+
+// Table Gallery - Change image by clicking arrows
 function changeTableImage(propertyId, direction) {
-    // Initialize gallery if not exists
-    if (!tableGalleries[propertyId]) {
-        const imgElement = document.getElementById(`table-gallery-img-${propertyId}`);
-        const galleryDiv = imgElement ? imgElement.closest('.table-image-gallery') : null;
+    const images = window[`tableGalleryImages_${propertyId}`];
+    if (!images || images.length <= 1) return;
 
-        if (!galleryDiv) return;
-
-        const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
-
-        if (dots.length > 1) {
-            tableGalleries[propertyId] = {
-                count: dots.length,
-                currentIndex: 0
-            };
-        } else {
-            return; // Single image, no navigation needed
-        }
+    // Initialize index if not exists
+    if (tableGalleryIndices[propertyId] === undefined) {
+        tableGalleryIndices[propertyId] = 0;
     }
 
-    const gallery = tableGalleries[propertyId];
-    gallery.currentIndex += direction;
+    tableGalleryIndices[propertyId] += direction;
 
-    // Wrap around
-    if (gallery.currentIndex < 0) {
-        gallery.currentIndex = gallery.count - 1;
-    } else if (gallery.currentIndex >= gallery.count) {
-        gallery.currentIndex = 0;
+    // Wrap around (loop)
+    if (tableGalleryIndices[propertyId] < 0) {
+        tableGalleryIndices[propertyId] = images.length - 1;
+    } else if (tableGalleryIndices[propertyId] >= images.length) {
+        tableGalleryIndices[propertyId] = 0;
     }
 
-    showTableImage(propertyId, gallery.currentIndex);
+    showTableImage(propertyId, tableGalleryIndices[propertyId]);
 }
 
-/**
- * Table Gallery - Show specific image
- * @param {number} propertyId - The property ID
- * @param {number} index - The image index to show
- */
+// Table Gallery - Show specific image by clicking dots
 function showTableImage(propertyId, index) {
+    const images = window[`tableGalleryImages_${propertyId}`];
+    if (!images || images.length === 0) return;
+
+    tableGalleryIndices[propertyId] = index;
     const imgElement = document.getElementById(`table-gallery-img-${propertyId}`);
-    const galleryDiv = imgElement ? imgElement.closest('.table-image-gallery') : null;
-
-    if (!galleryDiv) return;
-
-    // Initialize gallery data
-    if (!tableGalleries[propertyId]) {
-        const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
-        tableGalleries[propertyId] = {
-            count: dots.length,
-            currentIndex: 0
-        };
-    }
-
-    const gallery = tableGalleries[propertyId];
-    gallery.currentIndex = index % gallery.count;
-
-    // Get images from window object (if stored during PHP render)
-    let images = [];
-    if (window[`tableGalleryImages_${propertyId}`]) {
-        images = window[`tableGalleryImages_${propertyId}`];
-    }
-
-    // If we have images, update the src
-    if (images.length > 0) {
-        imgElement.src = images[gallery.currentIndex];
+    if (imgElement) {
+        imgElement.src = images[index];
     }
 
     // Update active dot
-    const dots = galleryDiv.querySelectorAll('.table-gallery-dot');
-    dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === gallery.currentIndex);
-    });
+    const gallery = document.getElementById(`table-gallery-${propertyId}`);
+    if (gallery) {
+        const dots = gallery.querySelectorAll('.table-gallery-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+    }
 }
 </script>
