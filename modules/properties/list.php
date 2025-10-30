@@ -286,8 +286,8 @@ try {
                             BASE_URL . 'img/casa2.jpg',
                             BASE_URL . 'img/casa3.jpeg'
                         ];
-                        $imageIndex = $property['id_inmueble'] % count($defaultImages);
-                        $allImages[] = $defaultImages[$imageIndex];
+                        // Add all default images so carousel works in cards too
+                        $allImages = $defaultImages;
                     }
 
                     // Determine tag class based on property status
