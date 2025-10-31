@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard de Cliente - Sistema de Gestión Inmobiliaria
+ * Dashboard de Cliente - Inmuebles del Sinú
  * Vista limitada para clientes: ver propiedades, sus visitas y contratos
  */
 

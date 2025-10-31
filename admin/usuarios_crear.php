@@ -1,6 +1,6 @@
 <?php
 /**
- * Crear Usuario - Sistema de Gestión Inmobiliaria
+ * Crear Usuario - Inmuebles del Sinú
  * Formulario para agregar nuevos usuarios al sistema
  */
 

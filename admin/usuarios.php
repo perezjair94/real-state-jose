@@ -1,6 +1,6 @@
 <?php
 /**
- * Gestión de Usuarios - Sistema de Gestión Inmobiliaria
+ * Gestión de Usuarios - Inmuebles del Sinú
  * Listado y administración de usuarios del sistema
  */
 

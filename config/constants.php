@@ -11,7 +11,7 @@ if (defined('APP_INITIALIZED')) {
 }
 
 // Application Information
-if (!defined('APP_NAME')) define('APP_NAME', 'Sistema de Gestión Inmobiliaria');
+if (!defined('APP_NAME')) define('APP_NAME', 'Inmuebles del Sinú');
 if (!defined('APP_VERSION')) define('APP_VERSION', '1.0.0');
 if (!defined('APP_DESCRIPTION')) define('APP_DESCRIPTION', 'Sistema educativo para gestión de propiedades inmobiliarias');
 if (!defined('APP_AUTHOR')) define('APP_AUTHOR', 'Proyecto Educativo PHP/MySQL');

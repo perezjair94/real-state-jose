@@ -1,6 +1,6 @@
 <?php
 /**
- * Editar Usuario - Sistema de Gestión Inmobiliaria
+ * Editar Usuario - Inmuebles del Sinú
  * Formulario para modificar usuarios existentes
  */
 

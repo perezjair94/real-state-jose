@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard de Administrador - Sistema de Gestión Inmobiliaria
+ * Dashboard de Administrador - Inmuebles del Sinú
  * Panel de control completo con acceso a todas las funcionalidades
  */
 

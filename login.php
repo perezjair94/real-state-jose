@@ -1,6 +1,6 @@
 <?php
 /**
- * Página de Login - Sistema de Gestión Inmobiliaria
+ * Página de Login - Inmuebles del Sinú
  * Autenticación para Administradores y Clientes
  */
 
