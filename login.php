@@ -4,6 +4,10 @@
  * Autenticación para Administradores y Clientes
  */
 
+// Set UTF-8 encoding for proper character handling
+header('Content-Type: text/html; charset=utf-8');
+mb_internal_encoding('UTF-8');
+
 // Application access control
 define('APP_ACCESS', true);
 

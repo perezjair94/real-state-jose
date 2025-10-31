@@ -345,7 +345,8 @@ function displayFlashMessage() {
  */
 function formatCurrency($amount, $showCode = false) {
     // Colombian format: $ sign, dot for thousands, no decimals
-    $formatted = CURRENCY_SYMBOL . ' ' . number_format($amount, CURRENCY_DECIMALS, ',', '.');
+    // Use literal $ instead of CURRENCY_SYMBOL to avoid encoding issues
+    $formatted = '$ ' . number_format($amount, CURRENCY_DECIMALS, ',', '.');
 
     if ($showCode) {
         $formatted .= ' ' . CURRENCY_CODE;
