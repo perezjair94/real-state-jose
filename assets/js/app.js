@@ -300,26 +300,32 @@ const App = {
    */
   initModals() {
     // Create modal container if it doesn't exist
-    if (!document.getElementById('modal-container')) {
-      const modalContainer = document.createElement('div');
-      modalContainer.id = 'modal-container';
-      modalContainer.innerHTML = `
-                <div class="modal" id="app-modal" style="display: none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="modal-title">Modal Title</h3>
-                            <button type="button" class="modal-close" data-modal-close>&times;</button>
-                        </div>
-                        <div class="modal-body" id="modal-body">
-                            Modal content goes here
-                        </div>
-                        <div class="modal-footer" id="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-modal-close>Cerrar</button>
-                        </div>
+    if (!document.getElementById('app-modal')) {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.id = 'app-modal';
+      modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Modal Title</h3>
+                        <button type="button" class="modal-close" data-modal-close>&times;</button>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        Modal content goes here
+                    </div>
+                    <div class="modal-footer" id="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-modal-close>Cerrar</button>
                     </div>
                 </div>
             `;
-      document.body.appendChild(modalContainer);
+      document.body.appendChild(modal);
+
+      // Click outside to close
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.closeModal();
+        }
+      });
     }
   },
 
@@ -346,15 +352,17 @@ const App = {
         modalFooter.innerHTML = footer;
       }
 
-      modal.style.display = 'flex';
+      // Show modal with class
       modal.classList.add('show');
       document.body.classList.add('modal-open');
 
       // Focus management for accessibility
-      const firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      if (firstFocusable) {
-        firstFocusable.focus();
-      }
+      setTimeout(() => {
+        const firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
+      }, 100);
     }
   },
 
@@ -364,7 +372,6 @@ const App = {
   closeModal() {
     const modal = document.getElementById('app-modal');
     if (modal) {
-      modal.style.display = 'none';
       modal.classList.remove('show');
       document.body.classList.remove('modal-open');
     }

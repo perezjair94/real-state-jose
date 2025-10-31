@@ -1021,7 +1021,6 @@ value.amount {
    MODAL STYLES
    ======================================== */
 .modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -1031,12 +1030,18 @@ value.amount {
     z-index: 9999;
     overflow: auto;
     padding: 20px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal.show {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    opacity: 1;
+    visibility: visible;
 }
 
 .modal-content {
