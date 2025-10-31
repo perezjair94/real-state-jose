@@ -346,7 +346,8 @@ const App = {
         modalFooter.innerHTML = footer;
       }
 
-      modal.style.display = 'block';
+      modal.style.display = 'flex';
+      modal.classList.add('show');
       document.body.classList.add('modal-open');
 
       // Focus management for accessibility
@@ -364,6 +365,7 @@ const App = {
     const modal = document.getElementById('app-modal');
     if (modal) {
       modal.style.display = 'none';
+      modal.classList.remove('show');
       document.body.classList.remove('modal-open');
     }
   },
