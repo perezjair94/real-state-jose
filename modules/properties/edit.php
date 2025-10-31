@@ -422,11 +422,11 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
             <div class="field-help">Máximo 1000 caracteres. Incluya detalles que hagan atractiva la propiedad.</div>
         </div>
 
-        <!-- Current Photos Display -->
+        <!-- Current Photos Display - Gallery Style (same as view.php) -->
         <?php if (!empty($photos)): ?>
             <div class="form-group">
-                <label>Fotografías Actuales:</label>
-                <div class="current-photos">
+                <label>Fotografías Actuales (<?= count($photos) ?>):</label>
+                <div class="photo-gallery">
                     <?php foreach ($photos as $index => $photo): ?>
                         <?php
                         // Determine the correct path for the image
@@ -439,21 +439,25 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
                             $photoSrc = UPLOADS_URL . 'properties/' . $photo;
                         }
                         ?>
-                        <div class="current-photo-item" data-photo="<?= htmlspecialchars($photo) ?>">
+                        <div class="photo-item" data-photo="<?= htmlspecialchars($photo) ?>" data-photo-index="<?= $index ?>">
                             <img
                                 src="<?= htmlspecialchars($photoSrc) ?>"
                                 alt="Foto <?= $index + 1 ?>"
-                                onclick="viewPhoto('<?= htmlspecialchars($photo) ?>')"
-                                onerror="this.src='img/casa1.jpeg'"
+                                onclick="openPhotoModal(<?= $index ?>)"
+                                loading="lazy"
+                                onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'"
                             >
-                            <button
-                                type="button"
-                                class="photo-delete-btn"
-                                onclick="deletePhoto('<?= htmlspecialchars($photo) ?>', <?= $propertyId ?>)"
-                                title="Eliminar foto"
-                            >
-                                ❌
-                            </button>
+                            <div class="photo-overlay">
+                                <span class="photo-number"><?= $index + 1 ?></span>
+                                <button
+                                    type="button"
+                                    class="photo-delete-btn"
+                                    onclick="event.stopPropagation(); deletePhoto('<?= htmlspecialchars($photo) ?>', <?= $propertyId ?>)"
+                                    title="Eliminar foto"
+                                >
+                                    ❌
+                                </button>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -623,15 +627,19 @@ function formatBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function viewPhoto(filename) {
-    // Determine the correct path for the image
-    const baseUrl = '<?= BASE_URL ?>';
-    const uploadsUrl = '<?= UPLOADS_URL ?>';
-    let photoPath;
-    if (filename.indexOf('img/') === 0 || filename.indexOf('casa') !== -1) {
-        photoPath = filename.indexOf('img/') === 0 ? baseUrl + filename : baseUrl + 'img/' + filename;
-    } else {
-        photoPath = uploadsUrl + 'properties/' + filename;
+// Photo Modal Functions (same as view.php)
+function openPhotoModal(index) {
+    const photos = <?= json_encode($photos) ?>;
+
+    // Helper function to get the correct photo path
+    function getPhotoPath(photo) {
+        const baseUrl = '<?= BASE_URL ?>';
+        const uploadsUrl = '<?= UPLOADS_URL ?>';
+        if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
+            return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
+        } else {
+            return uploadsUrl + 'properties/' + photo;
+        }
     }
 
     const modal = document.createElement('div');
@@ -639,17 +647,57 @@ function viewPhoto(filename) {
     modal.innerHTML = `
         <div class="photo-modal-content">
             <button class="photo-modal-close" onclick="this.closest('.photo-modal').remove()">&times;</button>
-            <img src="${photoPath}" alt="Foto de la propiedad" onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+            <img src="${getPhotoPath(photos[index])}" alt="Foto de la propiedad" onerror="this.src='<?= BASE_URL ?>img/casa1.jpeg'">
+            <div class="photo-modal-nav">
+                <button onclick="changePhoto(-1)" ${index === 0 ? 'disabled' : ''}>‹ Anterior</button>
+                <span>${index + 1} de ${photos.length}</span>
+                <button onclick="changePhoto(1)" ${index === photos.length - 1 ? 'disabled' : ''}>Siguiente ›</button>
+            </div>
         </div>
     `;
 
+    modal.currentIndex = index;
     document.body.appendChild(modal);
 
+    // Close on click outside
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.remove();
         }
     });
+}
+
+function changePhoto(direction) {
+    const modal = document.querySelector('.photo-modal');
+    if (!modal) return;
+
+    const photos = <?= json_encode($photos) ?>;
+    const newIndex = modal.currentIndex + direction;
+
+    // Helper function to get the correct photo path
+    function getPhotoPath(photo) {
+        const baseUrl = '<?= BASE_URL ?>';
+        const uploadsUrl = '<?= UPLOADS_URL ?>';
+        if (photo.indexOf('img/') === 0 || photo.indexOf('casa') !== -1) {
+            return photo.indexOf('img/') === 0 ? baseUrl + photo : baseUrl + 'img/' + photo;
+        } else {
+            return uploadsUrl + 'properties/' + photo;
+        }
+    }
+
+    if (newIndex >= 0 && newIndex < photos.length) {
+        modal.currentIndex = newIndex;
+        const img = modal.querySelector('img');
+        const nav = modal.querySelector('.photo-modal-nav span');
+        const prevBtn = modal.querySelector('.photo-modal-nav button:first-of-type');
+        const nextBtn = modal.querySelector('.photo-modal-nav button:last-of-type');
+
+        img.src = getPhotoPath(photos[newIndex]);
+        nav.textContent = `${newIndex + 1} de ${photos.length}`;
+
+        prevBtn.disabled = newIndex === 0;
+        nextBtn.disabled = newIndex === photos.length - 1;
+    }
 }
 
 async function deletePhoto(filename, propertyId) {
@@ -669,10 +717,10 @@ async function deletePhoto(filename, propertyId) {
 
             App.showSuccessMessage('Foto eliminada correctamente');
 
-            // If no photos left, hide the current photos section
-            const currentPhotos = document.querySelector('.current-photos');
-            if (currentPhotos && currentPhotos.children.length === 0) {
-                currentPhotos.closest('.form-group').style.display = 'none';
+            // If no photos left, hide the gallery section
+            const photoGallery = document.querySelector('.photo-gallery');
+            if (photoGallery && photoGallery.children.length === 0) {
+                photoGallery.closest('.form-group').style.display = 'none';
             }
         } else {
             throw new Error(response.error || 'Error desconocido');
@@ -771,58 +819,138 @@ if (typeof Storage !== "undefined") {
 
 <style>
 /* Additional styles for edit form */
-.current-photos {
+
+/* Photo Gallery Styles (same as view.php) */
+.photo-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: var(--spacing-sm);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
     margin-bottom: var(--spacing-md);
 }
 
-.current-photo-item {
+.photo-item {
     position: relative;
-    aspect-ratio: 1;
+    aspect-ratio: 4/3;
     border-radius: var(--border-radius);
     overflow: hidden;
-    border: 2px solid var(--border-color);
-    transition: border-color var(--transition-fast);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
 }
 
-.current-photo-item:hover {
-    border-color: var(--secondary-color);
+.photo-item:hover {
+    transform: scale(1.05);
 }
 
-.current-photo-item img {
+.photo-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    cursor: pointer;
+}
+
+.photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--spacing-sm);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.photo-item:hover .photo-overlay {
+    opacity: 1;
+}
+
+.photo-number {
+    background: rgba(255,255,255,0.9);
+    padding: 4px 8px;
+    border-radius: var(--border-radius);
+    font-size: 0.85em;
+    font-weight: 600;
 }
 
 .photo-delete-btn {
-    position: absolute;
-    top: 4px;
-    right: 4px;
     background: rgba(255, 255, 255, 0.9);
     border: none;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     transition: all var(--transition-fast);
-    opacity: 0;
-}
-
-.current-photo-item:hover .photo-delete-btn {
-    opacity: 1;
 }
 
 .photo-delete-btn:hover {
     background: rgba(231, 76, 60, 0.9);
+    transform: scale(1.1);
+}
+
+/* Photo Modal Styles (same as view.php) */
+.photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    text-align: center;
+}
+
+.photo-modal-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+.photo-modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
     color: white;
+    font-size: 2em;
+    cursor: pointer;
+}
+
+.photo-modal-nav {
+    margin-top: var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.photo-modal-nav button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+}
+
+.photo-modal-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Status change highlighting */
@@ -850,8 +978,8 @@ if (typeof Storage !== "undefined") {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .current-photos {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    .photo-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
 
     .form-actions {
