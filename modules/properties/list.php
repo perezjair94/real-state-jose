@@ -376,7 +376,6 @@ try {
                 <thead>
                     <tr>
                         <th>Imagen</th>
-                        <th>ID</th>
                         <th>Tipo</th>
                         <th>Dirección</th>
                         <th>Ciudad</th>
@@ -418,9 +417,6 @@ try {
                                          alt="Propiedad <?= $property['id_inmueble'] ?>"
                                          onerror="this.src='/img/casa1.jpeg'">
                                 </div>
-                            </td>
-                            <td>
-                                <strong class="property-id">INM<?= str_pad($property['id_inmueble'], 3, '0', STR_PAD_LEFT) ?></strong>
                             </td>
                             <td>
                                 <span class="property-type"><?= htmlspecialchars($property['tipo_inmueble']) ?></span>
