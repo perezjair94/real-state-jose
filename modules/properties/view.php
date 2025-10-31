@@ -105,11 +105,9 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
         <a href="?module=properties&action=edit&id=<?= $property['id_inmueble'] ?>" class="btn btn-primary">
             ✏️ Editar Propiedad
         </a>
-        <?php if ($property['estado'] === 'Disponible'): ?>
-            <button type="button" class="btn btn-warning" onclick="changeStatus('<?= $property['id_inmueble'] ?>')">
-                🔄 Cambiar Estado
-            </button>
-        <?php endif; ?>
+        <button type="button" class="btn btn-warning" onclick="changeStatus('<?= $property['id_inmueble'] ?>')">
+            🔄 Cambiar Estado
+        </button>
     <?php endif; ?>
 
     <button type="button" class="btn btn-info" onclick="printProperty()">
