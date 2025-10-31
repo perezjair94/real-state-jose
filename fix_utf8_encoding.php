@@ -43,13 +43,18 @@ try {
         foreach ($fields as $field) {
             $value = $inmueble[$field];
 
+            // Skip if value is null or empty
+            if ($value === null || $value === '') {
+                continue;
+            }
+
             // Check if it contains mojibake patterns (double UTF-8 encoding)
-            if (strpos($value, 'Ã') !== false ||
-                strpos($value, 'Ã©') !== false ||
-                strpos($value, 'Ã­') !== false ||
-                strpos($value, 'Ã³') !== false ||
-                strpos($value, 'Ãº') !== false ||
-                strpos($value, 'Ã±') !== false) {
+            if (str_contains($value, 'Ã©') ||
+                str_contains($value, 'Ã­') ||
+                str_contains($value, 'Ã³') ||
+                str_contains($value, 'Ãº') ||
+                str_contains($value, 'Ã±') ||
+                str_contains($value, 'Ã¡')) {
 
                 // Fix double encoding: interpret as Windows-1252 and convert to UTF-8
                 // This fixes the "MedellÃ­n" -> "Medellín" issue
@@ -101,8 +106,19 @@ try {
         foreach ($fields as $field) {
             $value = $cliente[$field];
 
+            // Skip if value is null or empty
+            if ($value === null || $value === '') {
+                continue;
+            }
+
             // Check if it contains mojibake patterns (double UTF-8 encoding)
-            if (strpos($value, 'Ã') !== false) {
+            if (str_contains($value, 'Ã©') ||
+                str_contains($value, 'Ã­') ||
+                str_contains($value, 'Ã³') ||
+                str_contains($value, 'Ãº') ||
+                str_contains($value, 'Ã±') ||
+                str_contains($value, 'Ã¡')) {
+
                 // Fix double encoding: interpret as Windows-1252 and convert to UTF-8
                 $fixed_value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                 $needs_fix = true;
