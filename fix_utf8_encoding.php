@@ -43,11 +43,7 @@ try {
         foreach ($fields as $field) {
             $value = $inmueble[$field];
 
-            // Try to fix double encoding
-            // When UTF-8 is encoded twice, we need to decode once
-            $fixed_value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-
-            // Check if it contains mojibake patterns
+            // Check if it contains mojibake patterns (double UTF-8 encoding)
             if (strpos($value, 'Ã') !== false ||
                 strpos($value, 'Ã©') !== false ||
                 strpos($value, 'Ã­') !== false ||
@@ -55,15 +51,16 @@ try {
                 strpos($value, 'Ãº') !== false ||
                 strpos($value, 'Ã±') !== false) {
 
-                // Fix double encoding by treating as ISO-8859-1 and converting to UTF-8
-                $fixed_value = utf8_encode(utf8_decode($value));
+                // Fix double encoding: interpret as Windows-1252 and convert to UTF-8
+                // This fixes the "MedellÃ­n" -> "Medellín" issue
+                $fixed_value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                 $needs_fix = true;
                 $fixed_data[$field] = $fixed_value;
 
                 echo "<div class='success'>";
                 echo "ID {$inmueble['id_inmueble']} - {$field}:<br>";
-                echo "Antes: {$value}<br>";
-                echo "Después: {$fixed_value}<br>";
+                echo "Antes: " . htmlspecialchars($value) . "<br>";
+                echo "Después: " . htmlspecialchars($fixed_value) . "<br>";
                 echo "</div>";
             }
         }
@@ -104,15 +101,17 @@ try {
         foreach ($fields as $field) {
             $value = $cliente[$field];
 
+            // Check if it contains mojibake patterns (double UTF-8 encoding)
             if (strpos($value, 'Ã') !== false) {
-                $fixed_value = utf8_encode(utf8_decode($value));
+                // Fix double encoding: interpret as Windows-1252 and convert to UTF-8
+                $fixed_value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                 $needs_fix = true;
                 $fixed_data[$field] = $fixed_value;
 
                 echo "<div class='success'>";
                 echo "Cliente ID {$cliente['id_cliente']} - {$field}:<br>";
-                echo "Antes: {$value}<br>";
-                echo "Después: {$fixed_value}<br>";
+                echo "Antes: " . htmlspecialchars($value) . "<br>";
+                echo "Después: " . htmlspecialchars($fixed_value) . "<br>";
                 echo "</div>";
             }
         }
