@@ -99,14 +99,19 @@ $formattedId = generateFormattedId('INM', $property['id_inmueble']);
     <a href="?module=properties" class="btn btn-secondary">
         ← Volver a la Lista
     </a>
-    <a href="?module=properties&action=edit&id=<?= $property['id_inmueble'] ?>" class="btn btn-primary">
-        ✏️ Editar Propiedad
-    </a>
-    <?php if ($property['estado'] === 'Disponible'): ?>
-        <button type="button" class="btn btn-warning" onclick="changeStatus('<?= $property['id_inmueble'] ?>')">
-            🔄 Cambiar Estado
-        </button>
+
+    <?php if (hasRole('admin')): ?>
+        <!-- Admin-only buttons -->
+        <a href="?module=properties&action=edit&id=<?= $property['id_inmueble'] ?>" class="btn btn-primary">
+            ✏️ Editar Propiedad
+        </a>
+        <?php if ($property['estado'] === 'Disponible'): ?>
+            <button type="button" class="btn btn-warning" onclick="changeStatus('<?= $property['id_inmueble'] ?>')">
+                🔄 Cambiar Estado
+            </button>
+        <?php endif; ?>
     <?php endif; ?>
+
     <button type="button" class="btn btn-info" onclick="printProperty()">
         🖨️ Imprimir Ficha
     </button>
@@ -665,6 +670,7 @@ function shareProperty() {
         });
     }
 }
+
 </script>
 
 <style>

@@ -10,15 +10,24 @@ if (!defined('APP_ACCESS')) {
     die('Direct access not permitted');
 }
 
+// Handle JSON requests
+$jsonData = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_SERVER['CONTENT_TYPE']) &&
+    strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
+    $jsonInput = file_get_contents('php://input');
+    $jsonData = json_decode($jsonInput, true);
+}
+
 // Ensure this is an AJAX request
-if (!isset($_POST['ajax']) || $_POST['ajax'] !== 'true') {
+if (!isset($_POST['ajax']) && !$jsonData) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid request']);
     exit;
 }
 
 // Get the requested action
-$action = $_POST['action'] ?? '';
+$action = $jsonData['action'] ?? $_POST['action'] ?? '';
 
 // Response array
 $response = ['success' => false, 'error' => '', 'data' => null];
@@ -50,6 +59,10 @@ try {
 
         case 'delete_photo':
             handleDeletePhoto($pdo, $response);
+            break;
+
+        case 'submitInterest':
+            handleSubmitInterest($pdo, $response, $jsonData);
             break;
 
         default:
@@ -454,6 +467,155 @@ function handleDeletePhoto($pdo, &$response) {
     } catch (Exception $e) {
         error_log("Photo deletion error: " . $e->getMessage());
         $response['error'] = 'Error al eliminar la foto';
+    }
+}
+
+/**
+ * Handle property interest submission (purchase or rental request)
+ */
+function handleSubmitInterest($pdo, &$response, $jsonData) {
+    // Get data from JSON request
+    $data = $jsonData['data'] ?? [];
+
+    // Validate required fields
+    $requiredFields = ['nombre', 'apellido', 'correo', 'telefono', 'id_inmueble', 'tipo_interes'];
+    foreach ($requiredFields as $field) {
+        if (empty($data[$field])) {
+            $response['error'] = "El campo '{$field}' es requerido";
+            error_log("Interest submission error: Missing field '{$field}'");
+            return;
+        }
+    }
+
+    // Sanitize inputs
+    $nombre = sanitizeInput($data['nombre']);
+    $apellido = sanitizeInput($data['apellido']);
+    $correo = sanitizeInput($data['correo']);
+    $telefono = sanitizeInput($data['telefono']);
+    $idInmueble = (int)$data['id_inmueble'];
+    $tipoInteres = sanitizeInput($data['tipo_interes']);
+    $fechaPreferida = !empty($data['fecha_preferida']) ? sanitizeInput($data['fecha_preferida']) : null;
+    $horaPreferida = !empty($data['hora_preferida']) ? sanitizeInput($data['hora_preferida']) : null;
+    $mensaje = !empty($data['mensaje']) ? sanitizeInput($data['mensaje']) : '';
+
+    // Validate email format
+    if (!validateEmail($correo)) {
+        $response['error'] = 'Formato de correo electrónico inválido';
+        return;
+    }
+
+    // Validate property ID
+    if ($idInmueble <= 0) {
+        $response['error'] = 'ID de propiedad inválido';
+        return;
+    }
+
+    // Validate tipo_interes
+    if (!in_array($tipoInteres, ['compra', 'arriendo'])) {
+        $response['error'] = 'Tipo de interés inválido';
+        return;
+    }
+
+    try {
+        // Check if property exists
+        $checkPropertySql = "SELECT id_inmueble, direccion, estado FROM inmueble WHERE id_inmueble = ?";
+        $checkPropertyStmt = $pdo->prepare($checkPropertySql);
+        $checkPropertyStmt->execute([$idInmueble]);
+        $property = $checkPropertyStmt->fetch();
+
+        if (!$property) {
+            $response['error'] = 'Propiedad no encontrada';
+            return;
+        }
+
+        if ($property['estado'] !== 'Disponible') {
+            $response['error'] = 'Esta propiedad ya no está disponible';
+            return;
+        }
+
+        // Check if client exists by email
+        $checkClientSql = "SELECT id_cliente, nombre, apellido FROM cliente WHERE correo = ?";
+        $checkClientStmt = $pdo->prepare($checkClientSql);
+        $checkClientStmt->execute([$correo]);
+        $existingClient = $checkClientStmt->fetch();
+
+        $idCliente = null;
+
+        if ($existingClient) {
+            // Use existing client
+            $idCliente = $existingClient['id_cliente'];
+            error_log("Using existing client ID: {$idCliente}");
+        } else {
+            // Create new client record
+            $tipoClienteMap = [
+                'compra' => 'Comprador',
+                'arriendo' => 'Arrendatario'
+            ];
+            $tipoCliente = $tipoClienteMap[$tipoInteres];
+
+            // Generate a unique document number (temporary for leads)
+            $nroDocumento = 'LEAD-' . strtoupper(substr(md5($correo . time()), 0, 10));
+
+            $insertClientSql = "INSERT INTO cliente (nombre, apellido, tipo_documento, nro_documento, correo, tipo_cliente)
+                                VALUES (?, ?, 'CC', ?, ?, ?)";
+            $insertClientStmt = $pdo->prepare($insertClientSql);
+            $insertClientStmt->execute([$nombre, $apellido, $nroDocumento, $correo, $tipoCliente]);
+            $idCliente = $pdo->lastInsertId();
+            error_log("Created new client ID: {$idCliente}");
+        }
+
+        // Get a default agent or leave null (admin will assign later)
+        $getAgentSql = "SELECT id_agente FROM agente WHERE activo = TRUE ORDER BY RAND() LIMIT 1";
+        $getAgentStmt = $pdo->prepare($getAgentSql);
+        $getAgentStmt->execute();
+        $agent = $getAgentStmt->fetch();
+        $idAgente = $agent ? $agent['id_agente'] : null;
+
+        // Create visit record with interest information
+        $visitEstado = 'Programada';
+        $visitFecha = $fechaPreferida ?: date('Y-m-d', strtotime('+3 days')); // Default: 3 days from now
+        $visitHora = $horaPreferida ?: '10:00:00'; // Default: 10 AM
+
+        $tipoInteresTexto = $tipoInteres === 'compra' ? 'Compra' : 'Arriendo';
+        $observaciones = "SOLICITUD DE {$tipoInteresTexto}\n";
+        $observaciones .= "Teléfono: {$telefono}\n";
+        if (!empty($mensaje)) {
+            $observaciones .= "Mensaje: {$mensaje}\n";
+        }
+        $observaciones .= "\nGenerado automáticamente desde la web.";
+
+        $insertVisitSql = "INSERT INTO visita (fecha_visita, hora_visita, estado, observaciones, id_inmueble, id_cliente, id_agente)
+                           VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $insertVisitStmt = $pdo->prepare($insertVisitSql);
+        $insertVisitStmt->execute([
+            $visitFecha,
+            $visitHora,
+            $visitEstado,
+            $observaciones,
+            $idInmueble,
+            $idCliente,
+            $idAgente
+        ]);
+
+        $visitId = $pdo->lastInsertId();
+
+        $response['success'] = true;
+        $response['data'] = [
+            'visita_id' => $visitId,
+            'cliente_id' => $idCliente,
+            'message' => '¡Solicitud registrada exitosamente! Nos pondremos en contacto contigo pronto.',
+            'fecha_visita' => $visitFecha,
+            'hora_visita' => $visitHora
+        ];
+
+        logMessage("Interest submission: Client {$idCliente} interested in {$tipoInteresTexto} property {$idInmueble}", 'INFO');
+
+    } catch (PDOException $e) {
+        error_log("Database error in handleSubmitInterest: " . $e->getMessage());
+        $response['error'] = 'Error al procesar la solicitud. Por favor intenta nuevamente.';
+    } catch (Exception $e) {
+        error_log("Error in handleSubmitInterest: " . $e->getMessage());
+        $response['error'] = 'Error al procesar la solicitud: ' . $e->getMessage();
     }
 }
 

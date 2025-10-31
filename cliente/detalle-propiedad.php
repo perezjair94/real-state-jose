@@ -349,6 +349,233 @@ if (empty($imagesToShow)) {
             background: #00aa41;
         }
 
+        /* Interest Buttons */
+        .btn-purchase,
+        .btn-rent {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Oswald', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-purchase {
+            background: linear-gradient(135deg, #00aa41, #00de55);
+            color: white;
+        }
+
+        .btn-purchase:hover {
+            background: linear-gradient(135deg, #008f36, #00c04a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 222, 85, 0.4);
+        }
+
+        .btn-rent {
+            background: linear-gradient(135deg, #0a1931, #1e3a5f);
+            color: white;
+        }
+
+        .btn-rent:hover {
+            background: linear-gradient(135deg, #0d1f3c, #2b5190);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 25, 49, 0.4);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0a1931, #1e3a5f);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .property-summary {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid #00de55;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .property-summary h4 {
+            margin: 0 0 10px 0;
+            color: #0a1931;
+        }
+
+        .property-summary p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .interest-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .interest-badge.compra {
+            background: linear-gradient(135deg, #00aa41, #00de55);
+            color: white;
+        }
+
+        .interest-badge.arriendo {
+            background: linear-gradient(135deg, #0a1931, #1e3a5f);
+            color: white;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #0a1931;
+        }
+
+        .form-group label.required::after {
+            content: ' *';
+            color: #e94545;
+        }
+
+        .form-control {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Oswald', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #00de55;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-primary {
+            background: #00de55;
+            color: white;
+        }
+
+        .btn-modal-primary:hover {
+            background: #00aa41;
+        }
+
+        .btn-modal-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-modal-secondary:hover {
+            background: #5a6268;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
         @media (max-width: 768px) {
             .image-gallery {
                 height: 300px;
@@ -503,12 +730,43 @@ if (empty($imagesToShow)) {
                     <?php endif; ?>
                 </div>
 
+                <!-- Interest Buttons -->
+                <div class="interest-buttons" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;">
+                    <button type="button" class="btn-purchase" onclick="showInterestForm('compra', <?= $property['id_inmueble'] ?>)">
+                        🏠 Comprar esta Propiedad
+                    </button>
+                    <button type="button" class="btn-rent" onclick="showInterestForm('arriendo', <?= $property['id_inmueble'] ?>)">
+                        🔑 Arrendar esta Propiedad
+                    </button>
+                </div>
+
                 <!-- Contact Section -->
                 <div class="contact-section">
                     <h3>¿Interesado en esta propiedad?</h3>
                     <p>Contáctanos para más información o para agendar una visita</p>
                     <a href="dashboard.php" class="btn-contact">Volver al Dashboard</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Interest Form -->
+    <div class="modal-overlay" id="interestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Solicitud de Interés</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-modal-primary" onclick="submitInterestForm()">
+                    Enviar Solicitud
+                </button>
+                <button type="button" class="btn-modal btn-modal-secondary" onclick="closeModal()">
+                    Cancelar
+                </button>
             </div>
         </div>
     </div>
@@ -549,6 +807,159 @@ if (empty($imagesToShow)) {
                 changeImage(-1);
             } else if (e.key === 'ArrowRight') {
                 changeImage(1);
+            }
+        });
+
+        // Interest Form Modal Functions
+        const currentUser = {
+            nombre_completo: '<?= $user['nombre_completo'] ?? '' ?>',
+            email: '<?= $user['email'] ?? '' ?>'
+        };
+
+        const property = {
+            id: <?= $property['id_inmueble'] ?>,
+            direccion: '<?= htmlspecialchars($property['direccion'], ENT_QUOTES) ?>',
+            precio: '<?= formatCurrency($property['precio']) ?>'
+        };
+
+        function showInterestForm(tipoInteres, propertyId) {
+            const tipoTexto = tipoInteres === 'compra' ? 'Comprar' : 'Arrendar';
+
+            // Split nombre_completo into nombre and apellido
+            const nombreParts = currentUser.nombre_completo.split(' ');
+            const nombre = nombreParts[0] || '';
+            const apellido = nombreParts.slice(1).join(' ') || '';
+
+            const formHtml = `
+                <div class="property-summary">
+                    <h4>Propiedad de Interés</h4>
+                    <p><strong>Dirección:</strong> ${property.direccion}</p>
+                    <p><strong>Precio:</strong> ${property.precio}</p>
+                    <p><strong>Tipo de Interés:</strong> <span class="interest-badge ${tipoInteres}">${tipoTexto}</span></p>
+                </div>
+
+                <form id="interest-form">
+                    <input type="hidden" name="id_inmueble" value="${propertyId}">
+                    <input type="hidden" name="tipo_interes" value="${tipoInteres}">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre" class="required">Nombre</label>
+                            <input type="text" id="nombre" name="nombre" class="form-control" required value="${nombre}">
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido" class="required">Apellido</label>
+                            <input type="text" id="apellido" name="apellido" class="form-control" required value="${apellido}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="correo" class="required">Correo Electrónico</label>
+                            <input type="email" id="correo" name="correo" class="form-control" required value="${currentUser.email}">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono" class="required">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha_preferida">Fecha Preferida para Visita</label>
+                            <input type="date" id="fecha_preferida" name="fecha_preferida" class="form-control" min="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="hora_preferida">Hora Preferida</label>
+                            <input type="time" id="hora_preferida" name="hora_preferida" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="mensaje">Mensaje Adicional</label>
+                        <textarea id="mensaje" name="mensaje" class="form-control" rows="3" placeholder="Cuéntanos más sobre tu interés en esta propiedad..."></textarea>
+                    </div>
+                </form>
+            `;
+
+            document.getElementById('modalTitle').textContent = `Solicitud de ${tipoTexto}`;
+            document.getElementById('modalBody').innerHTML = formHtml;
+            document.getElementById('interestModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('interestModal').classList.remove('active');
+        }
+
+        async function submitInterestForm() {
+            const form = document.getElementById('interest-form');
+            const formData = new FormData(form);
+
+            // Basic validation
+            const nombre = formData.get('nombre');
+            const apellido = formData.get('apellido');
+            const correo = formData.get('correo');
+            const telefono = formData.get('telefono');
+
+            if (!nombre || !apellido || !correo || !telefono) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(correo)) {
+                alert('Por favor ingrese un correo electrónico válido');
+                return;
+            }
+
+            try {
+                // Convert FormData to JSON
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                const response = await fetch('../index.php?module=properties&action=ajax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'submitInterest',
+                        data: data
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('¡Solicitud enviada exitosamente! Nos pondremos en contacto contigo pronto.');
+                    closeModal();
+                    // Optionally redirect to dashboard or show confirmation
+                    setTimeout(() => {
+                        window.location.href = 'mis-visitas.php';
+                    }, 1000);
+                } else {
+                    throw new Error(result.error || 'Error al enviar la solicitud');
+                }
+            } catch (error) {
+                console.error('Error submitting interest:', error);
+                alert('Error al enviar la solicitud: ' + error.message);
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('interestModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
             }
         });
     </script>
